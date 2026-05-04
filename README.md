@@ -1,0 +1,110 @@
+# REwebPortal — Mumbai & Thane Residential Buyer Protection Platform
+
+> **Empowering defrauded and at-risk homebuyers through project transparency, community connection, and grievance amplification.**
+
+---
+
+## What Is This?
+
+REwebPortal is a consumer-advocacy web platform focused exclusively on **residential real estate projects in Mumbai and Thane**, covering **reputed branded builders**. It bridges the information gap between homebuyers and builders by aggregating project data, enabling community formation, and surfacing compliance and delay signals before they become crises.
+
+---
+
+## Core Problems Solved
+
+| Problem | Solution |
+|---|---|
+| Builders control project narrative | Verified project profiles with RERA-sourced data |
+| Buyers are isolated | Community groups, forums, co-buyer discovery |
+| No unified knowledge base | Searchable project + builder wiki |
+| Grievances go unheard | Structured complaint logging + aggregation dashboard |
+| No early warning signals | Transparency scorecards + red-flag alerts |
+
+---
+
+## Documentation Index
+
+### Architecture
+- [`docs/architecture/01-system-overview.md`](docs/architecture/01-system-overview.md) — High-level architecture, component map
+- [`docs/architecture/02-tech-stack.md`](docs/architecture/02-tech-stack.md) — Full technology decisions with rationale
+- [`docs/architecture/03-database-schema.md`](docs/architecture/03-database-schema.md) — All data models, relationships, indexes
+- [`docs/architecture/04-api-design.md`](docs/architecture/04-api-design.md) — REST API contracts, request/response shapes
+- [`docs/architecture/05-security-model.md`](docs/architecture/05-security-model.md) — Auth, data privacy, encryption strategy
+
+### Features
+- [`docs/features/01-core-features.md`](docs/features/01-core-features.md) — Project profiles, RERA tracker, builder pages
+- [`docs/features/02-community-features.md`](docs/features/02-community-features.md) — Buyer forums, WhatsApp orchestration, co-buyer finder
+- [`docs/features/03-grievance-system.md`](docs/features/03-grievance-system.md) — Complaint logging, aggregation, escalation
+- [`docs/features/04-analytics-features.md`](docs/features/04-analytics-features.md) — Delay trends, cost overrun patterns, scorecards
+- [`docs/features/05-advanced-features.md`](docs/features/05-advanced-features.md) — Early warning system, legal library, expert network
+
+### Design
+- [`docs/design/01-design-system.md`](docs/design/01-design-system.md) — Color palette, typography, spacing, tokens
+- [`docs/design/02-component-library.md`](docs/design/02-component-library.md) — All UI components with props and states
+- [`docs/design/03-user-flows.md`](docs/design/03-user-flows.md) — User journeys for 4 buyer personas
+- [`docs/design/04-information-architecture.md`](docs/design/04-information-architecture.md) — IA, navigation, content hierarchy
+
+### Deployment & Security
+- [`docs/deployment/01-deployment-guide.md`](docs/deployment/01-deployment-guide.md) — Infrastructure, environments, CI/CD
+- [`docs/security/01-security-model.md`](docs/security/01-security-model.md) — Threat model, data protection, compliance
+
+---
+
+## Target Scope
+
+| Dimension | Scope |
+|---|---|
+| **Geography** | Mumbai (all suburbs) + Thane district |
+| **Property Type** | Residential only (apartments, townships) |
+| **Builder Tier** | Reputed branded builders (see feature doc for list) |
+| **User Type** | Existing homebuyers, prospective buyers, RERA observers |
+| **Platform** | Web (desktop-first, mobile-responsive) |
+
+---
+
+## Technology at a Glance
+
+```
+Frontend   →  Next.js 14 (App Router) + TypeScript + Tailwind CSS + shadcn/ui
+Backend    →  NestJS (Node.js) + TypeScript + REST API
+Database   →  PostgreSQL 16 (primary) + Redis 7 (cache/sessions)
+Storage    →  Cloudflare R2 (documents, images)
+Auth       →  JWT (access + refresh tokens) + OTP via SMS
+Search     →  PostgreSQL Full-Text Search → migrate to Typesense
+Maps       →  Mapbox GL JS
+Email      →  Resend
+SMS/OTP    →  MSG91 (India)
+Deployment →  Vercel (frontend) + Railway (backend) + Supabase (managed PG)
+```
+
+---
+
+## Getting Started (for Developers)
+
+> Full setup instructions: [`docs/deployment/01-deployment-guide.md`](docs/deployment/01-deployment-guide.md)
+
+```bash
+# Clone
+git clone https://github.com/ajit216/REwebPortal.git
+cd REwebPortal
+
+# Frontend
+cd apps/web && npm install && npm run dev
+
+# Backend
+cd apps/api && npm install && npm run start:dev
+```
+
+---
+
+## Design Principles
+
+1. **Buyer-first** — Every feature decision starts with "does this help a buyer?"
+2. **Trust through verification** — No unverified data shown without clear labelling
+3. **Privacy by default** — Personal buyer data never exposed without explicit consent
+4. **Factual, not defamatory** — Platform shows data and patterns, not editorial opinions
+5. **Accessible** — WCAG 2.1 AA minimum for all interfaces
+
+---
+
+*Architecture version: v1.0 | Platform: REwebPortal | Region: Mumbai & Thane*
