@@ -15,14 +15,16 @@
 **Filters (URL param-based, shareable links):**
 | Filter | Type | Options |
 |---|---|---|
-| City | Select | Mumbai, Thane |
-| Locality | Multi-select | Dynamic list from DB |
+| Locality | Multi-select | Thane West, Thane East, Dombivli, Majiwada, Kolshet, Bhiwandi, Anjur, Upper Thane |
 | Status | Multi-select | Under Construction, Near Completion, Ready to Move, Delayed, Stalled |
-| BHK Type | Multi-select | 1BHK, 2BHK, 3BHK, 4BHK |
+| BHK Type | Multi-select | 1BHK, 2BHK, 3BHK, 4BHK, 5BHK |
 | Price Range | Range slider | ₹X – ₹Y lakhs |
+| Project Tier | Select | Affordable, Mid-segment, Premium, Luxury (Lodha internal tiering) |
 | Transparency Score | Slider | 0–100 minimum |
 | Has Red Flags | Toggle | |
-| Builder | Select | Filtered list of reputed builders |
+| RERA Status | Select | Active, Extended, Lapsed |
+
+> **Note:** Builder filter is removed — all projects on this platform are Lodha Group projects.
 
 **Sort options:** Most Grievances, Lowest Score, Most Delayed, Recently Added, Alphabetical
 

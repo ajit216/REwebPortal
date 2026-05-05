@@ -340,19 +340,74 @@ Response: {
   }
 }
 
-GET /analytics/builders/comparison
-Query: builderIds[] (max 3)
-Response: { "data": [BuilderScorecard] }
-
-GET /analytics/market-overview
+GET /analytics/delays
+// Scoped to Thane + Lodha — returns per-project delay comparison
+Query: locality, year
 Response: {
   "data": {
-    "totalProjects": 487,
-    "byStatus": { UNDER_CONSTRUCTION: 234, DELAYED: 67, ... },
-    "byCity": { Mumbai: 312, Thane: 175 },
+    "avgDelayByProject": [{ projectId, projectName, avgDelayMonths, tier }],
+    "delayDistribution": [{ range: "0-6m", count: 45 }, ...],
+    "worstDelayedProjects": [ProjectSummary × 5],
+    "builderAvgDelay": 11.2   // Lodha Thane portfolio average
+  }
+}
+
+GET /analytics/market-overview
+// Scoped: Lodha Thane portfolio summary
+Response: {
+  "data": {
+    "totalProjects": 15,
+    "byStatus": { UNDER_CONSTRUCTION: 8, DELAYED: 4, STALLED: 0, ... },
+    "byLocality": { "Thane West": 6, "Dombivli": 4, "Majiwada": 2, ... },
     "avgTransparencyScore": 72.4,
-    "totalGrievances": 1243,
-    "activeGrievances": 389
+    "totalGrievances": 623,
+    "activeGrievances": 189,
+    "builderFinancialLatest": BuilderFinancialSnapshot  // latest quarter
+  }
+}
+
+// NEW: Lodha cross-project comparison widget data
+GET /analytics/projects/:projectId/context
+// Returns "Is this normal for Lodha?" widget data
+Response: {
+  "data": {
+    "thisProjectDelayMonths": 14,
+    "portfolioAvgDelayMonths": 11.2,
+    "projectsWithMoreDelay": 4,
+    "totalProjectsCompared": 15,
+    "reraExtensionsThisProject": 2,
+    "portfolioAvgExtensions": 1.3,
+    "openGrievancesThisProject": 23,
+    "portfolioAvgGrievances": 18
+  }
+}
+
+// NEW: Builder corporate financial tracker
+GET /builders/lodha/financials
+Response: {
+  "data": {
+    "snapshots": [BuilderFinancialSnapshot],  // sorted newest-first
+    "latestQuarter": "Q4 FY25",
+    "trend": { "debtDirection": "decreasing", "preSalesDirection": "stable" }
+  }
+}
+
+// NEW: Promise vs delivery tracker
+GET /builders/lodha/promises
+Query: status?, projectId?, promiseType?
+Response: {
+  "data": {
+    "promises": [BuilderPromise],
+    "summary": { PENDING: 8, DELIVERED_ON_TIME: 3, DELIVERED_LATE: 12, UNFULFILLED: 2 }
+  }
+}
+
+// NEW: Sub-projects (Palava phases)
+GET /projects/:slug/sub-projects
+Response: {
+  "data": {
+    "parent": ProjectSummary,
+    "subProjects": [ProjectSummary with phase label]
   }
 }
 ```
@@ -381,6 +436,27 @@ DELETE /admin/projects/:id (soft delete)
 // Builder management
 POST /admin/builders
 PATCH /admin/builders/:id
+
+// NEW: Builder financial snapshots (Lodha quarterly data entry)
+POST /admin/builders/:id/financial-snapshots
+Auth: ADMIN
+Body: { quarter, fiscalYear, preSalesCr, collectionsCr, netDebtCr, cashEquivCr, sourceUrl, filedAt }
+Response: { "data": BuilderFinancialSnapshot }
+
+PATCH /admin/builders/:builderId/financial-snapshots/:id
+DELETE /admin/builders/:builderId/financial-snapshots/:id
+
+// NEW: Builder promise tracker (admin-managed)
+POST /admin/builders/:id/promises
+Auth: ADMIN
+Body: { projectId?, promiseType, description, promisedValue, sourceType, sourceUrl, sourceLabel }
+Response: { "data": BuilderPromise }
+
+PATCH /admin/builders/:builderId/promises/:id
+// Used to record actualValue and update status when promise is resolved/delivered
+Body: { actualValue?, status, resolvedAt? }
+
+DELETE /admin/builders/:builderId/promises/:id
 
 // Moderation
 GET /admin/moderation/queue

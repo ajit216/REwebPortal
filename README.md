@@ -1,12 +1,14 @@
-# REwebPortal — Mumbai & Thane Residential Buyer Protection Platform
+# REwebPortal — Thane Lodha Buyer Protection Platform
 
-> **Empowering defrauded and at-risk homebuyers through project transparency, community connection, and grievance amplification.**
+> **Empowering defrauded and at-risk homebuyers in Thane through project transparency, community connection, and grievance amplification — focused exclusively on Lodha Group projects.**
 
 ---
 
 ## What Is This?
 
-REwebPortal is a consumer-advocacy web platform focused exclusively on **residential real estate projects in Mumbai and Thane**, covering **reputed branded builders**. It bridges the information gap between homebuyers and builders by aggregating project data, enabling community formation, and surfacing compliance and delay signals before they become crises.
+REwebPortal is a consumer-advocacy web platform focused exclusively on **residential real estate projects in Thane city** developed by **Lodha Group (Macrotech Developers Ltd.)**. It bridges the information gap between homebuyers and the builder by aggregating project data, enabling community formation, and surfacing compliance and delay signals before they become crises.
+
+> **Scope rationale:** Lodha is Thane's dominant residential developer with 15+ active projects ranging from affordable townships (Palava, Upper Thane) to premium towers (Amara, Sterling, Luxuria). The scale and buyer population of Lodha's Thane portfolio makes focused advocacy more impactful than spreading across all builders.
 
 ---
 
@@ -57,11 +59,33 @@ REwebPortal is a consumer-advocacy web platform focused exclusively on **residen
 
 | Dimension | Scope |
 |---|---|
-| **Geography** | Mumbai (all suburbs) + Thane district |
-| **Property Type** | Residential only (apartments, townships) |
-| **Builder Tier** | Reputed branded builders (see feature doc for list) |
-| **User Type** | Existing homebuyers, prospective buyers, RERA observers |
+| **Geography** | Thane city (Thane Municipal Corporation limits + Thane district periphery — Dombivli, Bhiwandi, Anjur, Kolshet belt) |
+| **Property Type** | Residential only (apartments, townships, plotted developments) |
+| **Builder** | **Lodha Group (Macrotech Developers Ltd.)** — all residential projects in Thane |
+| **User Type** | Existing Lodha homebuyers, prospective buyers, RERA observers |
 | **Platform** | Web (desktop-first, mobile-responsive) |
+
+### Known Lodha Projects in Scope (Thane Geography)
+
+| Project | Micro-Location | Type |
+|---|---|---|
+| Lodha Palava City | Dombivli East (Thane dist.) | Integrated Township |
+| Lodha Amara | Kolshet Road, Thane | Premium Towers |
+| Lodha Sterling | Thane West | Premium Residential |
+| Lodha Upper Thane | Anjur Phata, Bhiwandi | Mid-segment Township |
+| Lodha Splendora | Thane | Mid-segment Apartments |
+| Lodha Belmondo | Thane–Pune Expressway | Luxury Riverside |
+| Lodha Majiwada | Majiwada, Thane | Premium Towers |
+| Lodha Luxuria | Majiwada, Thane | Luxury Apartments |
+| Lodha Crown | Thane West | Premium Residential |
+| Lodha Casa Bella | Dombivli | Affordable Homes |
+| Lodha Casa Bella Gold | Dombivli | Mid-segment |
+| Lodha Crest | Upper Thane | Luxury |
+| Lodha Vista | Thane | Mid-segment |
+| Lodha Acenza | Thane | Luxury Towers |
+| Lodha Divino | Thane | Premium Apartments |
+
+> This list is seed data; the admin panel will maintain the authoritative project registry.
 
 ---
 
@@ -110,4 +134,12 @@ cd apps/api && npm install && npm run start:dev
 
 ---
 
-*Architecture version: v1.0 | Platform: REwebPortal | Region: Mumbai & Thane*
+---
+
+## Additional Documentation
+
+- [`docs/features/07-lodha-thane-scope.md`](docs/features/07-lodha-thane-scope.md) — Lodha-specific features: corporate tracker, cross-project analysis, promise vs delivery
+
+---
+
+*Architecture version: v1.1 | Platform: REwebPortal | Region: Thane | Builder Focus: Lodha Group*

@@ -5,10 +5,12 @@
 ## 1. Purpose
 
 Analytics transforms raw project data into actionable intelligence for:
-- **Prospective buyers:** "Which builders have the best track record?"
-- **Existing buyers:** "Is my delay normal, or is my project an outlier?"
-- **RERA/Regulators:** "Which projects/builders need intervention?"
-- **Media/Journalists:** "What are the systemic trends in Mumbai real estate?"
+- **Prospective buyers:** "How does Lodha perform across its Thane projects — before I commit?"
+- **Existing buyers:** "Is my project's delay typical for Lodha, or is it an outlier?"
+- **RERA/Regulators:** "Which Lodha projects in Thane need intervention?"
+- **Media/Journalists:** "What are the systemic delivery patterns of Lodha in the Thane market?"
+
+> **Single-builder advantage:** Because all projects are Lodha's, cross-project analytics are directly comparable. Delay patterns, quality complaints, and RERA extension behaviour can be studied as a **builder-wide pattern** rather than isolated project events.
 
 ---
 
@@ -16,16 +18,16 @@ Analytics transforms raw project data into actionable intelligence for:
 
 **URL:** `/analytics`
 
-### 2.1 Market Overview (Mumbai + Thane Snapshot)
+### 2.1 Lodha Thane Portfolio Snapshot
 
 ```
-MUMBAI & THANE RESIDENTIAL REAL ESTATE — PLATFORM SNAPSHOT
-Updated: May 2025
+LODHA GROUP — THANE RESIDENTIAL PORTFOLIO SNAPSHOT
+Updated: May 2025 | Builder: Macrotech Developers Ltd. (NSE: LODHA)
 
-┌──────────────────────────────────────────────────────────────────┐
-│   487 Projects     │  89 Delayed    │  ₹72.4 Avg Score  │  15 Builders │
-│   Under Scope      │  (18.3%)       │  Transparency     │  Tracked      │
-└──────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────┐
+│  ~15 Projects   │  X Delayed      │  Avg Score: XX   │  1 Builder  │
+│  Under Scope    │  (tracked)      │  Transparency    │  (Lodha)    │
+└────────────────────────────────────────────────────────────────────┘
 
 PROJECT STATUS DISTRIBUTION
 ●●●●●●●●● Under Construction: 234 (48%)
@@ -51,13 +53,18 @@ TOP GRIEVANCE CATEGORIES (All Projects)
 ```
 POSSESSION DELAY ANALYSIS
 
-AVERAGE DELAY BY BUILDER (months)
-Builder A ████████████████ 16.2 months
-Builder B ██████████ 10.8 months
-Builder C ████████ 8.4 months
-Builder D ██████ 6.1 months
-Builder E ████ 4.2 months
-[Show all builders]
+AVERAGE POSSESSION DELAY — LODHA THANE PROJECTS (months)
+Lodha Palava City   ████████████████ (tracked)
+Lodha Upper Thane   ██████████ (tracked)
+Lodha Amara         ████████ (tracked)
+Lodha Sterling      ██████ (tracked)
+Lodha Splendora     ████ (tracked)
+[Show all ~15 Lodha Thane projects]
+
+MACROTECH DEVELOPERS CORPORATE INDICATORS (NSE: LODHA)
+Net Debt / Equity: tracked from quarterly results
+Pre-sales velocity: tracked — slowdown = early warning signal
+Collections vs disbursements: tracked — cash flow stress indicator
 
 DELAY DISTRIBUTION — ALL PROJECTS
 No delay:          ■■■■■■■■■■■■■ 43%
