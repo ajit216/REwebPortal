@@ -7,13 +7,20 @@
 
 ## Entity Relationship Overview
 
+> **Scope note (v1.1):** The schema supports one builder at launch (Lodha Group). The `Builder` model is retained to allow future multi-builder expansion without schema migration.
+
 ```
 Builder ──< Project ──< ProjectUnit
+        ──< BuilderFinancialSnapshot      ← NEW: Quarterly corporate financials
+        ──< BuilderPromise                ← NEW: Promise vs delivery tracker
                     ──< ProjectTimeline
                     ──< RERARecord ──< RERAApproval
                     ──< Grievance ──< GrievanceEvidence
                     ──< CommunityGroup ──< Thread ──< Reply
                     ──< ProjectUpdateLog
+                    ──< BuilderPromise (project-scoped)
+
+Project ──< Project (self-relation: parentProject / subProjects)  ← NEW: Palava sub-projects
 
 User ──< BuyerProfile ──< BuyerProjectLink
      ──< Grievance
@@ -235,12 +242,22 @@ model Builder {
   totalGrievances       Int                @default(0)
   avgDelayMonths        Float?
 
+  // Public company fields (Macrotech Developers / Lodha)
+  stockExchange         String?            // "NSE" | "BSE" | "NSE,BSE"
+  stockTicker           String?            // "LODHA"
+  bseCode               String?            // "543287"
+  isinCode              String?            // "INE670K01029"
+  isPubliclyListed      Boolean            @default(false)
+  latestAnnualReportUrl String?            // URL to most recent annual report (public)
+
   isActive              Boolean            @default(true)
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
 
   projects              Project[]
   documents             BuilderDocument[]
+  financialSnapshots    BuilderFinancialSnapshot[]
+  promises              BuilderPromise[]
 
   @@index([slug])
   @@index([transparencyScore])
@@ -319,6 +336,12 @@ model Project {
   // Full-text search vector (auto-updated via trigger)
   searchVector          Unsupported("tsvector")?
 
+  // Sub-project support (e.g. Lodha Palava phases/wings)
+  parentProjectId       String?                              // null = top-level project
+  isSubProject          Boolean         @default(false)
+  subProjectLabel       String?                              // "Phase 2 — Aquaville Wing B"
+  projectTier           ProjectTier?                         // Lodha's tier classification
+
   builder               Builder         @relation(fields: [builderId], references: [id])
   unitTypes             ProjectUnitType[]
   timelines             ProjectTimeline[]
@@ -328,13 +351,26 @@ model Project {
   buyerLinks            BuyerProjectLink[]
   updateLogs            ProjectUpdateLog[]
   redFlags              ProjectRedFlag[]
+  builderPromises       BuilderPromise[]
+
+  // Self-relation for Palava sub-projects
+  parentProject         Project?        @relation("SubProjects", fields: [parentProjectId], references: [id])
+  subProjects           Project[]       @relation("SubProjects")
 
   @@index([builderId])
   @@index([status])
   @@index([city, locality])
   @@index([reraNumber])
+  @@index([parentProjectId])
   @@index([searchVector], type: Gin)    // GIN index for full-text search
   @@map("projects")
+}
+
+enum ProjectTier {
+  AFFORDABLE    // Lodha Casa Bella, Palava affordable
+  MID_SEGMENT   // Splendora, Upper Thane
+  PREMIUM       // Sterling, Amara, Crown
+  LUXURY        // Belmondo, Luxuria, Crest, Acenza
 }
 
 model ProjectUnitType {
@@ -694,6 +730,87 @@ model AdminAction {
   @@index([entityType, entityId])
   @@map("admin_actions")
 }
+
+// ─────────────────────────────────────────────
+// LODHA-SPECIFIC MODELS (v1.1 — Thane Focus)
+// ─────────────────────────────────────────────
+
+// Tracks Macrotech Developers quarterly financials (sourced from NSE/BSE filings)
+model BuilderFinancialSnapshot {
+  id              String   @id @default(cuid())
+  builderId       String
+  quarter         String   // "Q4 FY25"
+  fiscalYear      String   // "FY25"
+  preSalesCr      Decimal  @db.Decimal(12,2)
+  collectionsCr   Decimal  @db.Decimal(12,2)
+  netDebtCr       Decimal  @db.Decimal(12,2)
+  cashEquivCr     Decimal  @db.Decimal(12,2)
+  operatingCfCr   Decimal? @db.Decimal(12,2)
+  sourceUrl       String   // NSE/BSE filing URL (public)
+  filedAt         DateTime // Date of regulatory filing
+  notes           String?  // Admin context note
+  createdAt       DateTime @default(now())
+
+  builder         Builder  @relation(fields: [builderId], references: [id])
+
+  @@unique([builderId, quarter])
+  @@index([builderId, fiscalYear])
+  @@map("builder_financial_snapshots")
+}
+
+// Tracks publicly stated builder promises vs actual delivery
+model BuilderPromise {
+  id              String        @id @default(cuid())
+  builderId       String
+  projectId       String?       // null = builder-level promise (all projects)
+  promiseType     PromiseType
+  description     String        // "OC delivery by Dec 2023 for Tower 1"
+  promisedValue   String        // "Dec 2023"
+  actualValue     String?       // Filled when resolved: "OC obtained Jun 2025"
+  sourceType      PromiseSource
+  sourceUrl       String?       // URL to brochure, press release, RERA filing
+  sourceLabel     String?       // Human-readable: "Lodha Amara Brochure 2020"
+  status          PromiseStatus
+  evidenceUrls    String[]
+  resolvedAt      DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  builder         Builder       @relation(fields: [builderId], references: [id])
+  project         Project?      @relation(fields: [projectId], references: [id])
+
+  @@index([builderId, status])
+  @@index([projectId])
+  @@map("builder_promises")
+}
+
+enum PromiseType {
+  POSSESSION_DATE
+  AMENITY_DELIVERY
+  SPECIFICATION
+  PRICING_STABILITY
+  OC_TIMELINE
+  CONSTRUCTION_MILESTONE
+  OTHER
+}
+
+enum PromiseSource {
+  MARKETING_BROCHURE
+  RERA_FILING
+  PRESS_RELEASE
+  SALES_AGREEMENT
+  WEBSITE
+  LETTER_TO_BUYER
+  OTHER
+}
+
+enum PromiseStatus {
+  PENDING
+  DELIVERED_ON_TIME
+  DELIVERED_LATE
+  UNFULFILLED
+  DISPUTED
+}
 ```
 
 ---
@@ -703,12 +820,15 @@ model AdminAction {
 | Table | Index | Purpose |
 |---|---|---|
 | `users` | `phone` | OTP login lookup |
-| `projects` | `city, locality` | Geographic filtering |
+| `projects` | `city, locality` | Geographic filtering (Thane micro-localities) |
 | `projects` | `status` | Status filter |
+| `projects` | `parentProjectId` | Palava sub-project tree traversal |
 | `projects` | `searchVector` (GIN) | Full-text search |
 | `grievances` | `projectId, status` | Per-project complaint count |
 | `threads` | `communityGroupId` | Forum listing |
 | `rera_records` | `reraNumber` | RERA lookup by number |
+| `builder_financial_snapshots` | `builderId, fiscalYear` | Corporate financial trend queries |
+| `builder_promises` | `builderId, status` | Promise tracker dashboard |
 
 ---
 

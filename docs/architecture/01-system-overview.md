@@ -153,11 +153,12 @@ Admin → POST /admin/rera/sync/{projectId}
 
 ## 6. Scalability Considerations
 
-### Current Scale (Launch)
-- ~50 reputed builders, ~500 active projects, ~10,000 registered buyers
-- PostgreSQL handles all load comfortably
+### Current Scale (Launch — Thane + Lodha Focus)
+- **1 builder** (Lodha Group / Macrotech Developers Ltd.), **~15–20 active projects**, ~5,000–15,000 registered buyers
+- Thane-only scope significantly reduces data volume at launch; PostgreSQL handles all load with headroom
 - Redis for session management and hot-path caching
 - Vercel auto-scales frontend, Railway scales API horizontally
+- Single-builder focus enables deeper per-project data without indexing complexity of multi-builder catalog
 
 ### Growth Levers (When Needed)
 | Trigger | Action |

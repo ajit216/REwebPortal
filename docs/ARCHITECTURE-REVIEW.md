@@ -11,11 +11,18 @@ Defrauded and at-risk residential homebuyers in **Mumbai and Thane** who:
 - Have no unified knowledge base to challenge builder narratives
 - Lack accessible grievance channels
 
-### Scope Applied
-- **Geography:** Mumbai (all suburbs) + Thane district
-- **Builders:** Reputed branded builders only (Lodha, Godrej Properties, Oberoi Realty, L&T Realty, Kalpataru, Rustomjee, Hiranandani, Mahindra Lifespaces, Piramal Realty, Raymond Realty, Tata Housing, Runwal, Shapoorji Pallonji, Wadhwa, Ekta World)
-- **Property type:** Residential only (apartments, townships)
+### Scope Applied — v1.1 Refined
+- **Geography:** Thane city (TMC limits + Thane district belt: Dombivli, Bhiwandi, Anjur, Kolshet)
+- **Builder:** **Lodha Group (Macrotech Developers Ltd.)** exclusively — the dominant Thane residential developer
+- **Why single-builder focus:** Lodha has 15+ active residential projects in Thane covering ~50,000+ units. A single-builder portal enables deeper cross-project analysis, builder-level promise tracking, and a tightly scoped buyer community that can coordinate more effectively.
+- **Property type:** Residential only (apartments, integrated townships, plotted)
 - **Platform:** Standard web — desktop-first, mobile-responsive. No native app, no real-time streaming.
+
+### Builder Entity: Macrotech Developers Ltd.
+- **Publicly listed:** BSE: 543287 | NSE: LODHA (listed April 2021)
+- **Registered:** Maharashtra
+- **Promoter:** Abhishek Lodha (Managing Director)
+- **Key advantage:** As a listed company, Macrotech's quarterly results, annual reports, DRHP, and investor presentations are public record — enabling financial health tracking alongside project-level RERA data.
 
 ---
 
