@@ -72,7 +72,7 @@ export default function MyProjectsPage() {
                   </Link>
                 </Button>
                 <Button variant="ghost" size="sm" asChild>
-                  <Link href="/dashboard/my-grievances">My Grievances</Link>
+                  <Link href="/my-grievances">My Grievances</Link>
                 </Button>
               </div>
             </div>

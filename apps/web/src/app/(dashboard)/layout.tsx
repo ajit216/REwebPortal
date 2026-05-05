@@ -4,11 +4,11 @@ import Link from 'next/link'
 import { LayoutDashboard, Building, Flag, Bell, Shield, User } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { href: '/dashboard/my-projects', label: 'My Projects', icon: Building },
-  { href: '/dashboard/my-grievances', label: 'My Grievances', icon: Flag },
-  { href: '/dashboard/alerts', label: 'Alerts', icon: Bell },
-  { href: '/dashboard/verify', label: 'Verify Ownership', icon: Shield },
-  { href: '/dashboard/profile', label: 'Profile', icon: User },
+  { href: '/my-projects', label: 'My Projects', icon: Building },
+  { href: '/my-grievances', label: 'My Grievances', icon: Flag },
+  { href: '/alerts', label: 'Alerts', icon: Bell },
+  { href: '/verify', label: 'Verify Ownership', icon: Shield },
+  { href: '/profile', label: 'Profile', icon: User },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

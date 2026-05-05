@@ -24,7 +24,7 @@ export function ThreadCard({ thread, showProjectName = false, projectSlug }: Thr
             </div>
           )}
           <Link
-            href={`/projects/${projectSlug}/community#${thread.id}`}
+            href={projectSlug ? `/projects/${projectSlug}#community` : '#'}
             className="font-heading text-base font-semibold text-neutral-900 hover:text-primary-600 transition-colors line-clamp-2"
           >
             {thread.title}
