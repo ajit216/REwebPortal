@@ -4,10 +4,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { RERAStatusCard } from '@/components/project/rera-status-card'
 import { TimelineChart } from '@/components/project/timeline-chart'
 import { ThreadCard } from '@/components/community/thread-card'
+import { GrievanceDonutChart } from '@/components/grievance/grievance-donut-chart'
 import { DataDisclaimer } from '@/components/shared/data-disclaimer'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-import { Flag } from 'lucide-react'
+import { Flag, Shield } from 'lucide-react'
 import type { RERARecord, ProjectTimeline, Thread, GrievanceCategorySummary } from '@rewebportal/types'
 
 interface ProjectTabsProps {
@@ -17,6 +18,7 @@ interface ProjectTabsProps {
   threads: Thread[]
   openGrievances: number
   grievanceCategorySummary: GrievanceCategorySummary[]
+  totalGrievances?: number
 }
 
 export function ProjectTabs({
@@ -26,6 +28,7 @@ export function ProjectTabs({
   threads,
   openGrievances,
   grievanceCategorySummary,
+  totalGrievances,
 }: ProjectTabsProps) {
   return (
     <Tabs defaultValue="overview">
@@ -71,38 +74,30 @@ export function ProjectTabs({
       <TabsContent value="grievances">
         <div className="space-y-6">
           <div className="rounded-xl border border-neutral-200 bg-white p-6">
-            <h2 className="font-heading text-base font-semibold text-neutral-900 mb-4">
-              Grievance Summary — {openGrievances} Open Complaints
-            </h2>
-            <div className="space-y-3">
-              {grievanceCategorySummary.map((item) => (
-                <div key={item.category}>
-                  <div className="flex items-center justify-between mb-1 text-sm">
-                    <span className="text-neutral-700 font-medium">
-                      {item.category.replace(/_/g, ' ')}
-                    </span>
-                    <span className="text-neutral-500">{item.count} ({item.percentage}%)</span>
-                  </div>
-                  <div className="h-2 w-full rounded-full bg-neutral-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-primary-500 transition-all"
-                      style={{ width: `${item.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <h2 className="font-heading text-base font-semibold text-neutral-900">
+                Grievance Summary
+              </h2>
+              <Button asChild>
+                <Link href="/login?next=/grievances/new">
+                  <Flag className="h-4 w-4" />
+                  File a Grievance
+                </Link>
+              </Button>
             </div>
+            <GrievanceDonutChart
+              data={grievanceCategorySummary}
+              totalCount={totalGrievances ?? openGrievances}
+              openCount={openGrievances}
+            />
           </div>
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-neutral-500">
-              Grievance descriptions are private. Only aggregated patterns are shown publicly.
+
+          <div className="rounded-xl bg-neutral-50 border border-neutral-200 p-4 flex items-start gap-3">
+            <Shield className="h-4 w-4 text-neutral-400 shrink-0 mt-0.5" aria-hidden="true" />
+            <p className="text-sm text-neutral-600">
+              Grievance descriptions and evidence are private — only visible to the filer and platform admins.
+              Only aggregated patterns are shown publicly to protect buyer privacy while maintaining transparency.
             </p>
-            <Button asChild>
-              <Link href="/login?next=/grievances/new">
-                <Flag className="h-4 w-4" />
-                File a Grievance
-              </Link>
-            </Button>
           </div>
         </div>
       </TabsContent>

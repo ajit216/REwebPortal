@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { MapPin, ExternalLink, Building, Users, Flag } from 'lucide-react'
+import { MapPin, ExternalLink, Building, Users, Flag, Shield } from 'lucide-react'
 import { TransparencyScoreBadge } from '@/components/project/transparency-score-badge'
 import { ProjectStatusBadge } from '@/components/project/project-status-badge'
 import { ProjectStatsRow } from '@/components/project/project-stats-row'
@@ -164,19 +164,25 @@ export default function ProjectDetailPage({ params }: PageProps) {
           <div className="rounded-xl border border-neutral-200 bg-white p-5 space-y-3">
             <h3 className="font-heading text-sm font-semibold text-neutral-900">Quick Actions</h3>
             <Button className="w-full" asChild>
+              <Link href={`/projects/${project.slug}/buyer-check`}>
+                <Shield className="h-4 w-4" />
+                Buyer Check ✓
+              </Link>
+            </Button>
+            <Button variant="outline" className="w-full" asChild>
               <Link href="/login?next=/grievances/new">
                 <Flag className="h-4 w-4" />
                 File a Grievance
               </Link>
             </Button>
             <Button variant="outline" className="w-full" asChild>
-              <Link href="/login?next=/dashboard/verify">
+              <Link href="/login?next=/verify">
                 <Users className="h-4 w-4" />
                 Join Community
               </Link>
             </Button>
             <Button variant="outline" className="w-full" asChild>
-              <Link href="/login?next=/dashboard/verify">
+              <Link href="/login?next=/verify">
                 <Building className="h-4 w-4" />
                 Verify Ownership
               </Link>
@@ -228,6 +234,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
         threads={threads}
         openGrievances={project.openGrievances}
         grievanceCategorySummary={GRIEVANCE_CATEGORY_SUMMARY}
+        totalGrievances={project.openGrievances + 22}
       />
     </div>
   )

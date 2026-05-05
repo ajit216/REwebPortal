@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Shield, Building, RefreshCw, Flag, Eye, AlertTriangle, CheckCircle, LayoutDashboard } from 'lucide-react'
+import { Shield, Building, RefreshCw, Flag, Eye, AlertTriangle, CheckCircle, LayoutDashboard, BarChart2 } from 'lucide-react'
 
 export const metadata: Metadata = { title: { default: 'Admin', template: '%s | Admin — REwebPortal' } }
 
@@ -12,6 +12,7 @@ const NAV = [
   { href: '/admin/moderation', label: 'Moderation', icon: Eye },
   { href: '/admin/red-flags', label: 'Red Flags', icon: AlertTriangle },
   { href: '/admin/verifications', label: 'Verifications', icon: CheckCircle },
+  { href: '/admin/analytics', label: 'Analytics', icon: BarChart2 },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
