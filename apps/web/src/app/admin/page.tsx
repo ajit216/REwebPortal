@@ -1,123 +1,124 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import {
+  Building,
+  RefreshCw,
+  Shield,
+  Flag,
+  AlertTriangle,
+  Users,
+  Eye,
+  CheckCircle,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { PROJECTS, BUILDERS, ANALYTICS_STATS } from '@/data/mock'
 
-export const metadata: Metadata = { title: 'Dashboard' }
+export const metadata: Metadata = { title: 'Admin Dashboard' }
 
-// TODO: Replace with real data from API
-const mockStats = {
-  unacknowledgedGrievances: 12,
-  verificationsPending: 47,
-  moderationReports: 8,
-  reraOverdue: 23,
-  totalUsers: 8432,
-  verifiedBuyers: 2109,
-  totalGrievances: 1243,
-  newUsersThisMonth: 234,
-}
+const QUICK_STATS = [
+  { label: 'Total Projects', value: ANALYTICS_STATS.totalProjects, icon: Building, color: 'text-primary-500', bg: 'bg-primary-50' },
+  { label: 'Active Grievances', value: ANALYTICS_STATS.activeGrievances, icon: Flag, color: 'text-warning-500', bg: 'bg-warning-50' },
+  { label: 'Delayed / Stalled', value: (ANALYTICS_STATS.byStatus.DELAYED || 0) + (ANALYTICS_STATS.byStatus.STALLED || 0), icon: AlertTriangle, color: 'text-danger-500', bg: 'bg-danger-50' },
+  { label: 'Total Builders', value: BUILDERS.length, icon: Users, color: 'text-success-500', bg: 'bg-success-50' },
+]
+
+const ADMIN_SECTIONS = [
+  { href: '/admin/projects', icon: Building, label: 'Manage Projects', desc: 'Edit project details, sync RERA data, add timelines' },
+  { href: '/admin/rera-sync', icon: RefreshCw, label: 'RERA Sync Queue', desc: 'Review and approve MahaRERA data syncs' },
+  { href: '/admin/grievances', icon: Flag, label: 'Grievance Queue', desc: 'Review, acknowledge and escalate complaints' },
+  { href: '/admin/moderation', icon: Eye, label: 'Moderation Queue', desc: 'Review flagged community posts' },
+  { href: '/admin/red-flags', icon: AlertTriangle, label: 'Red Flag Candidates', desc: 'Review and publish auto-detected red flags' },
+  { href: '/admin/verifications', icon: CheckCircle, label: 'Verification Queue', desc: 'Review buyer ownership verification requests' },
+]
 
 export default function AdminDashboardPage() {
+  const projectsNeedingSync = PROJECTS.filter((p) => !['COMPLETED', 'READY_TO_MOVE'].includes(p.status))
+
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-neutral-900">Platform Dashboard</h2>
-        <p className="text-neutral-500 text-sm mt-1">
-          {new Date().toLocaleDateString('en-IN', { dateStyle: 'long' })} — Logged in as admin@rewebportal.in
-        </p>
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <Shield className="h-5 w-5 text-primary-500" />
+            <span className="text-xs font-semibold text-primary-600 uppercase tracking-wide">Admin Portal</span>
+          </div>
+          <h1 className="font-heading text-2xl font-bold text-neutral-900">Dashboard</h1>
+        </div>
+        <Button variant="outline" size="sm" asChild>
+          <Link href="/">View Public Site →</Link>
+        </Button>
       </div>
 
-      {/* Immediate action items */}
-      <section>
-        <h3 className="text-base font-semibold text-red-700 mb-3">⚠️ Immediate Action Required</h3>
-        <div className="space-y-2">
-          {mockStats.unacknowledgedGrievances > 0 && (
-            <ActionBanner
-              severity="red"
-              label={`${mockStats.unacknowledgedGrievances} unacknowledged grievances (>2 days old)`}
-              href="/admin/grievances"
-            />
-          )}
-          {mockStats.verificationsPending > 0 && (
-            <ActionBanner
-              severity="amber"
-              label={`${mockStats.verificationsPending} buyer verification requests pending`}
-              href="/admin/verification"
-            />
-          )}
-          {mockStats.moderationReports > 0 && (
-            <ActionBanner
-              severity="amber"
-              label={`${mockStats.moderationReports} moderation reports in queue`}
-              href="/admin/moderation"
-            />
-          )}
-          {mockStats.reraOverdue > 0 && (
-            <ActionBanner
-              severity="blue"
-              label={`${mockStats.reraOverdue} projects due for RERA sync (>30 days)`}
-              href="/admin/rera-sync"
-            />
-          )}
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
+        {QUICK_STATS.map((stat) => (
+          <div key={stat.label} className="rounded-xl border border-neutral-200 bg-white p-5">
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${stat.bg} mb-3`}>
+              <stat.icon className={`h-5 w-5 ${stat.color}`} aria-hidden="true" />
+            </div>
+            <p className={`font-heading text-2xl font-bold ${stat.color}`}>{stat.value}</p>
+            <p className="text-xs text-neutral-500 mt-0.5">{stat.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Action Sections */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+        {ADMIN_SECTIONS.map((section) => (
+          <Link
+            key={section.href}
+            href={section.href}
+            className="group rounded-xl border border-neutral-200 bg-white p-5 hover:shadow-md hover:border-primary-200 transition-all"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-50">
+                <section.icon className="h-5 w-5 text-primary-500" aria-hidden="true" />
+              </div>
+              <h2 className="font-heading text-sm font-semibold text-neutral-900 group-hover:text-primary-600 transition-colors">
+                {section.label}
+              </h2>
+            </div>
+            <p className="text-xs text-neutral-500">{section.desc}</p>
+          </Link>
+        ))}
+      </div>
+
+      {/* Projects Needing Attention */}
+      <div className="rounded-xl border border-neutral-200 bg-white p-6">
+        <h2 className="font-heading text-base font-semibold text-neutral-900 mb-4">
+          Projects Needing RERA Sync ({projectsNeedingSync.length})
+        </h2>
+        <div className="divide-y divide-neutral-100">
+          {projectsNeedingSync.slice(0, 5).map((project) => (
+            <div key={project.id} className="py-3 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-neutral-800">{project.name}</p>
+                <p className="text-xs text-neutral-500">{project.builderName} · RERA: {project.reraNumber}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-medium rounded-full px-2 py-0.5 ${
+                  ['DELAYED', 'STALLED'].includes(project.status)
+                    ? 'bg-danger-50 text-danger-700'
+                    : 'bg-info-50 text-info-700'
+                }`}>
+                  {project.status.replace(/_/g, ' ')}
+                </span>
+                <Button size="sm" variant="outline" asChild>
+                  <Link href={`/admin/rera-sync?project=${project.id}`}>
+                    <RefreshCw className="h-3 w-3" />
+                    Sync
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          ))}
         </div>
-      </section>
-
-      {/* Platform stats */}
-      <section>
-        <h3 className="text-base font-semibold text-neutral-700 mb-3">Platform Stats — This Month</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="Total Users" value={mockStats.totalUsers.toLocaleString('en-IN')} />
-          <StatCard label="Verified Buyers" value={mockStats.verifiedBuyers.toLocaleString('en-IN')} />
-          <StatCard label="Total Grievances" value={mockStats.totalGrievances.toLocaleString('en-IN')} />
-          <StatCard label="New Users (Month)" value={mockStats.newUsersThisMonth.toLocaleString('en-IN')} />
-        </div>
-      </section>
-
-      {/* Quick links */}
-      <section>
-        <h3 className="text-base font-semibold text-neutral-700 mb-3">Quick Actions</h3>
-        <div className="flex flex-wrap gap-3">
-          <QuickLink href="/admin/projects" label="+ Add Project" />
-          <QuickLink href="/admin/projects" label="Publish Queue" />
-          <QuickLink href="/admin/rera-sync" label="RERA Sync Queue" />
-          <QuickLink href="/admin/verification" label="Pending Verifications" />
-        </div>
-      </section>
+        {projectsNeedingSync.length > 5 && (
+          <p className="mt-3 text-xs text-neutral-400 text-center">
+            +{projectsNeedingSync.length - 5} more projects. <Link href="/admin/projects" className="text-primary-500 hover:underline">View all →</Link>
+          </p>
+        )}
+      </div>
     </div>
-  )
-}
-
-function ActionBanner({ severity, label, href }: { severity: 'red' | 'amber' | 'blue'; label: string; href: string }) {
-  const colors = {
-    red: 'bg-red-50 border-red-200 text-red-800',
-    amber: 'bg-amber-50 border-amber-200 text-amber-800',
-    blue: 'bg-blue-50 border-blue-200 text-blue-800',
-  }
-
-  return (
-    <div className={`flex items-center justify-between px-4 py-3 border rounded-lg ${colors[severity]}`}>
-      <span className="text-sm font-medium">{label}</span>
-      <Link href={href} className="text-xs font-semibold underline ml-4 shrink-0">
-        Review →
-      </Link>
-    </div>
-  )
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-white border border-neutral-200 rounded-lg p-4">
-      <p className="text-2xl font-bold text-neutral-900">{value}</p>
-      <p className="text-sm text-neutral-500 mt-1">{label}</p>
-    </div>
-  )
-}
-
-function QuickLink({ href, label }: { href: string; label: string }) {
-  return (
-    <Link
-      href={href}
-      className="px-4 py-2 bg-white border border-neutral-200 rounded-lg text-sm font-medium text-neutral-700 hover:bg-neutral-50 transition-colors"
-    >
-      {label}
-    </Link>
   )
 }

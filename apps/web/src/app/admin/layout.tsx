@@ -1,61 +1,61 @@
-// Admin Layout — wraps all /admin/* pages
-// Auth check: only ADMIN or MODERATOR role can access
-// Separate from the buyer-facing (dashboard) layout
-
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import { Shield, Building, RefreshCw, Flag, Eye, AlertTriangle, CheckCircle, LayoutDashboard } from 'lucide-react'
 
-export const metadata: Metadata = {
-  title: { template: '%s | REwebPortal Admin', default: 'Admin Panel | REwebPortal' },
-  robots: 'noindex, nofollow', // Admin pages must never appear in search engines
-}
+export const metadata: Metadata = { title: { default: 'Admin', template: '%s | Admin — REwebPortal' } }
 
-const adminNavLinks = [
-  { href: '/admin', label: '📊 Dashboard' },
-  { href: '/admin/projects', label: '🏗️ Projects' },
-  { href: '/admin/rera-sync', label: '📋 RERA Sync' },
-  { href: '/admin/grievances', label: '⚖️ Grievances' },
-  { href: '/admin/verification', label: '✅ Verification' },
-  { href: '/admin/moderation', label: '🛡️ Moderation' },
+const NAV = [
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/projects', label: 'Projects', icon: Building },
+  { href: '/admin/rera-sync', label: 'RERA Sync', icon: RefreshCw },
+  { href: '/admin/grievances', label: 'Grievances', icon: Flag },
+  { href: '/admin/moderation', label: 'Moderation', icon: Eye },
+  { href: '/admin/red-flags', label: 'Red Flags', icon: AlertTriangle },
+  { href: '/admin/verifications', label: 'Verifications', icon: CheckCircle },
 ]
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  // TODO: Add server-side auth check here using next-auth session
-  // If session.user.role !== 'ADMIN' && !== 'MODERATOR' → redirect to /admin/login
-
   return (
-    <div className="min-h-screen bg-neutral-50 flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-neutral-900 text-neutral-100 flex flex-col fixed inset-y-0 left-0">
-        <div className="p-6 border-b border-neutral-800">
-          <p className="text-xs text-neutral-400 uppercase tracking-widest">REwebPortal</p>
-          <h1 className="text-lg font-semibold mt-1">Admin Panel</h1>
-        </div>
-
-        <nav className="flex-1 p-4 space-y-1">
-          {adminNavLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="block px-3 py-2 rounded-md text-sm font-medium text-neutral-300 hover:bg-neutral-800 hover:text-white transition-colors"
-            >
-              {link.label}
+    <div className="min-h-screen bg-neutral-50">
+      {/* Admin top bar */}
+      <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-neutral-900 text-white">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex h-14 items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-500">
+                <Shield className="h-4 w-4 text-white" aria-hidden="true" />
+              </div>
+              <span className="font-heading font-semibold text-sm">REwebPortal Admin</span>
+            </div>
+            <Link href="/" className="text-xs text-neutral-400 hover:text-white transition-colors">
+              ← View Public Site
             </Link>
-          ))}
-        </nav>
-
-        <div className="p-4 border-t border-neutral-800">
-          <p className="text-xs text-neutral-500">Logged in as admin</p>
-          <Link href="/admin/login" className="text-xs text-neutral-400 hover:text-white mt-1 block">
-            Log out
-          </Link>
+          </div>
         </div>
-      </aside>
+      </header>
 
-      {/* Main content */}
-      <main className="flex-1 ml-64 p-8">
-        {children}
-      </main>
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[200px_1fr]">
+          {/* Sidebar */}
+          <aside className="hidden lg:block">
+            <nav className="sticky top-20 space-y-0.5" aria-label="Admin navigation">
+              {NAV.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+                >
+                  <item.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </aside>
+
+          {/* Content */}
+          <main>{children}</main>
+        </div>
+      </div>
     </div>
   )
 }

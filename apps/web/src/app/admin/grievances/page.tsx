@@ -1,143 +1,105 @@
 import type { Metadata } from 'next'
+import { Flag, Clock } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { GrievanceStatusBadge } from '@/components/grievance/grievance-status-badge'
+import { grievanceCategoryLabel, severityLabel } from '@/lib/utils'
+import { USER_GRIEVANCES, GRIEVANCE_CATEGORY_SUMMARY } from '@/data/mock'
 
-export const metadata: Metadata = { title: 'Grievance Management' }
+export const metadata: Metadata = { title: 'Grievance Queue' }
 
-// TODO: Replace with real API data
-// GET /api/v1/admin/grievances?status=SUBMITTED&sortBy=oldest
-export default function AdminGrievancesPage() {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-neutral-900">Grievance Management</h2>
-        <p className="text-sm text-neutral-500 mt-1">
-          Review, acknowledge, escalate, and resolve buyer complaints.
-        </p>
-      </div>
+// Expand mock data for admin view
+const ADMIN_GRIEVANCES = [
+  ...USER_GRIEVANCES,
+  {
+    id: 'ag1',
+    referenceId: 'GRV-2025-0501',
+    projectName: 'Rustomjee Seasons',
+    category: 'POSSESSION_DELAY' as const,
+    severity: 'CRITICAL' as const,
+    title: 'Possession delayed 32 months, builder unresponsive',
+    status: 'SUBMITTED' as const,
+    createdAt: '2025-05-01T08:00:00Z',
+    updatedAt: '2025-05-01T08:00:00Z',
+    isAnonymous: false,
+  },
+  {
+    id: 'ag2',
+    referenceId: 'GRV-2025-0498',
+    projectName: 'Runwal My City',
+    category: 'CONSTRUCTION_QUALITY' as const,
+    severity: 'HIGH' as const,
+    title: 'Seepage in walls, builder not responding',
+    status: 'SUBMITTED' as const,
+    createdAt: '2025-04-30T14:00:00Z',
+    updatedAt: '2025-04-30T14:00:00Z',
+    isAnonymous: true,
+  },
+]
 
-      {/* SLA alert */}
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800">
-        <strong>SLA Alert:</strong> 12 grievances have not been acknowledged in over 2 days. Target: acknowledge within 2 business days.
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 bg-white border border-neutral-200 rounded-lg p-4">
-        <select className="text-sm border border-neutral-300 rounded-md px-3 py-1.5">
-          <option>All Statuses</option>
-          <option>Submitted</option>
-          <option>Acknowledged</option>
-          <option>Escalated</option>
-          <option>Resolved</option>
-        </select>
-        <select className="text-sm border border-neutral-300 rounded-md px-3 py-1.5">
-          <option>All Severities</option>
-          <option>Critical</option>
-          <option>High</option>
-          <option>Medium</option>
-          <option>Low</option>
-        </select>
-        <select className="text-sm border border-neutral-300 rounded-md px-3 py-1.5">
-          <option>All Ages</option>
-          <option>&gt;1 day</option>
-          <option>&gt;3 days</option>
-          <option>&gt;7 days</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Search by project or reference..."
-          className="text-sm border border-neutral-300 rounded-md px-3 py-1.5 flex-1 min-w-48"
-        />
-      </div>
-
-      {/* Table */}
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-neutral-50 border-b border-neutral-200">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Reference</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Project</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Category</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Severity</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Status</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Filed</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Age</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <GrievanceRow
-              ref="GRV-2025-0891"
-              project="Lodha Palava City"
-              category="POSSESSION_DELAY"
-              severity="HIGH"
-              status="SUBMITTED"
-              filed="25 Apr 2025"
-              ageDays={3}
-            />
-            <GrievanceRow
-              ref="GRV-2025-0756"
-              project="Rustomjee Elements"
-              category="OC_CERTIFICATE_DELAY"
-              severity="CRITICAL"
-              status="ESCALATED"
-              filed="18 Apr 2025"
-              ageDays={10}
-            />
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
+const severityColor: Record<string, string> = {
+  CRITICAL: 'danger',
+  HIGH: 'danger',
+  MEDIUM: 'warning',
+  LOW: 'default',
 }
 
-function GrievanceRow({
-  ref: refId, project, category, severity, status, filed, ageDays,
-}: {
-  ref: string
-  project: string
-  category: string
-  severity: string
-  status: string
-  filed: string
-  ageDays: number
-}) {
-  const severityColors: Record<string, string> = {
-    CRITICAL: 'bg-red-100 text-red-700',
-    HIGH: 'bg-orange-100 text-orange-700',
-    MEDIUM: 'bg-amber-100 text-amber-700',
-    LOW: 'bg-neutral-100 text-neutral-600',
-  }
-
-  const statusColors: Record<string, string> = {
-    SUBMITTED: 'bg-blue-100 text-blue-700',
-    ACKNOWLEDGED: 'bg-amber-100 text-amber-700',
-    ESCALATED: 'bg-purple-100 text-purple-700',
-    RESOLVED: 'bg-green-100 text-green-700',
-  }
+export default function AdminGrievancesPage() {
+  const unacknowledged = ADMIN_GRIEVANCES.filter((g) => g.status === 'SUBMITTED')
 
   return (
-    <tr className="border-b border-neutral-100 hover:bg-neutral-50">
-      <td className="px-4 py-3 font-mono text-xs text-neutral-600">{refId}</td>
-      <td className="px-4 py-3 font-medium text-sm">{project}</td>
-      <td className="px-4 py-3 text-xs text-neutral-600">{category.replace(/_/g, ' ')}</td>
-      <td className="px-4 py-3">
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${severityColors[severity]}`}>
-          {severity}
-        </span>
-      </td>
-      <td className="px-4 py-3">
-        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusColors[status]}`}>
-          {status}
-        </span>
-      </td>
-      <td className="px-4 py-3 text-neutral-500 text-xs">{filed}</td>
-      <td className={`px-4 py-3 text-xs font-medium ${ageDays > 2 ? 'text-red-600' : 'text-neutral-600'}`}>
-        {ageDays}d ago
-      </td>
-      <td className="px-4 py-3">
-        <button className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700">
-          Review
-        </button>
-      </td>
-    </tr>
+    <div>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="font-heading text-2xl font-bold text-neutral-900">Grievance Queue</h1>
+          <p className="text-neutral-600 text-sm mt-1">
+            {unacknowledged.length} unacknowledged complaints
+          </p>
+        </div>
+      </div>
+
+      {/* Summary */}
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {GRIEVANCE_CATEGORY_SUMMARY.slice(0, 4).map((item) => (
+          <div key={item.category} className="rounded-xl border border-neutral-200 bg-white p-4">
+            <p className="text-lg font-bold font-heading text-neutral-800">{item.count}</p>
+            <p className="text-xs text-neutral-500 mt-0.5">{grievanceCategoryLabel(item.category)}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Queue */}
+      <div className="rounded-xl border border-neutral-200 bg-white divide-y divide-neutral-100">
+        {ADMIN_GRIEVANCES.map((g) => (
+          <div key={g.id} className="p-5">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div className="flex-1 min-w-0">
+                <p className="font-mono text-xs text-neutral-400 mb-1">{g.referenceId}</p>
+                <h2 className="font-heading text-sm font-semibold text-neutral-900 line-clamp-1">{g.title}</h2>
+                <p className="text-xs text-neutral-500 mt-0.5">{g.projectName}</p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <GrievanceStatusBadge status={g.status} />
+                  <Badge variant={severityColor[g.severity] as any}>{severityLabel(g.severity)}</Badge>
+                  <Badge variant="default">{grievanceCategoryLabel(g.category)}</Badge>
+                  {g.isAnonymous && <Badge variant="default">Anonymous</Badge>}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 text-xs text-neutral-400">
+                  <Clock className="h-3 w-3" />
+                  {new Date(g.createdAt).toLocaleDateString('en-IN')}
+                </span>
+                <Button size="sm" variant="outline">
+                  Review
+                </Button>
+                {g.status === 'SUBMITTED' && (
+                  <Button size="sm">Acknowledge</Button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

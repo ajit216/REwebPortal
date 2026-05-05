@@ -1,77 +1,54 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
+import { Plus, Building, ExternalLink } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { PROJECTS } from '@/data/mock'
+import { statusLabel, statusVariant } from '@/lib/utils'
 
-export const metadata: Metadata = { title: 'Projects' }
+export const metadata: Metadata = { title: 'Manage Projects' }
 
-// TODO: Replace with real API data
-// GET /api/v1/admin/projects?page=1&limit=50
 export default function AdminProjectsPage() {
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div>
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-neutral-900">Projects</h2>
-          <p className="text-sm text-neutral-500 mt-1">Manage all published and draft projects</p>
+          <h1 className="font-heading text-2xl font-bold text-neutral-900">Projects</h1>
+          <p className="text-neutral-600 text-sm mt-1">{PROJECTS.length} projects in the database</p>
         </div>
-        <a
-          href="/admin/projects/new"
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          + Add Project
-        </a>
+        <Button size="sm">
+          <Plus className="h-4 w-4" />
+          Add Project
+        </Button>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 bg-white border border-neutral-200 rounded-lg p-4">
-        <select className="text-sm border border-neutral-300 rounded-md px-3 py-1.5">
-          <option>All Cities</option>
-          <option>Mumbai</option>
-          <option>Thane</option>
-        </select>
-        <select className="text-sm border border-neutral-300 rounded-md px-3 py-1.5">
-          <option>All Statuses</option>
-          <option>Under Construction</option>
-          <option>Delayed</option>
-          <option>Stalled</option>
-          <option>Completed</option>
-        </select>
-        <select className="text-sm border border-neutral-300 rounded-md px-3 py-1.5">
-          <option>Published + Draft</option>
-          <option>Published Only</option>
-          <option>Draft Only</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Search by name or RERA number..."
-          className="text-sm border border-neutral-300 rounded-md px-3 py-1.5 flex-1 min-w-48"
-        />
-      </div>
-
-      {/* Table placeholder */}
-      <div className="bg-white border border-neutral-200 rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-neutral-50 border-b border-neutral-200">
-            <tr>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Project / Builder</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">RERA Number</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Status</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Published</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Score</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Last RERA Sync</th>
-              <th className="text-left px-4 py-3 font-medium text-neutral-600">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="border-b border-neutral-100">
-              <td className="px-4 py-4" colSpan={7}>
-                <div className="text-center text-neutral-400 py-8">
-                  Connect to API — implement data fetch here
-                  <br />
-                  <span className="text-xs">GET /api/v1/admin/projects</span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div className="rounded-xl border border-neutral-200 bg-white divide-y divide-neutral-100">
+        {PROJECTS.map((project) => (
+          <div key={project.id} className="p-4 flex items-center gap-4 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <h2 className="font-heading text-sm font-semibold text-neutral-900">{project.name}</h2>
+                <Badge variant={statusVariant(project.status)}>{statusLabel(project.status)}</Badge>
+                {project.redFlagCount > 0 && (
+                  <Badge variant="danger">⚠️ {project.redFlagCount} flags</Badge>
+                )}
+              </div>
+              <p className="text-xs text-neutral-500">{project.builderName} · {project.locality}, {project.city}</p>
+              <p className="font-mono text-xs text-neutral-400 mt-0.5">{project.reraNumber}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                href={`/projects/${project.slug}`}
+                target="_blank"
+                className="text-xs text-primary-500 hover:underline flex items-center gap-1"
+              >
+                <ExternalLink className="h-3 w-3" />
+                View
+              </Link>
+              <Button size="sm" variant="outline">Edit</Button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   )
