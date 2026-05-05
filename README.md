@@ -44,9 +44,12 @@ REwebPortal is a consumer-advocacy web platform focused exclusively on **residen
 - [`docs/design/03-user-flows.md`](docs/design/03-user-flows.md) — User journeys for 4 buyer personas
 - [`docs/design/04-information-architecture.md`](docs/design/04-information-architecture.md) — IA, navigation, content hierarchy
 
+### Features (continued)
+- [`docs/features/06-admin-panel.md`](docs/features/06-admin-panel.md) — Admin workflows: RERA sync, buyer verification, moderation
+
 ### Deployment & Security
 - [`docs/deployment/01-deployment-guide.md`](docs/deployment/01-deployment-guide.md) — Infrastructure, environments, CI/CD
-- [`docs/security/01-security-model.md`](docs/security/01-security-model.md) — Threat model, data protection, compliance
+- [`docs/security/01-security-model.md`](docs/security/01-security-model.md) — Developer security checklist, DPDP compliance, threat model
 
 ---
 
