@@ -1,5 +1,6 @@
 // Prisma Schema — REwebPortal
-// Full schema matching docs/architecture/03-database-schema.md
+// Source of truth: docs/architecture/03-database-schema.md
+// Database: PostgreSQL 16
 
 generator client {
   provider = "prisma-client-js"
@@ -92,11 +93,6 @@ enum LegalResourceCategory {
   FAQ
 }
 
-enum RedFlagSeverity {
-  WARNING
-  CRITICAL
-}
-
 // ─── USER & AUTH ──────────────────────────────────────────────────────────────
 
 model User {
@@ -175,51 +171,116 @@ model OTPRecord {
 // ─── BUILDER ──────────────────────────────────────────────────────────────────
 
 model Builder {
-  id                 String            @id @default(cuid())
-  slug               String            @unique
-  name               String
-  logoUrl            String?
-  establishedYear    Int?
-  cin                String?
-  website            String?
-  isPublished        Boolean           @default(false)
-  transparencyScore  Float?
-  transparencyGrade  TransparencyGrade?
-  scoreUpdatedAt     DateTime?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  id                  String             @id @default(cuid())
+  slug                String             @unique
+  name                String
+  legalEntityName     String
+  cinNumber           String?
+  establishedYear     Int?
+  headquartersCity    String             @default("Mumbai")
+  logoUrl             String?
+  websiteUrl          String?
+  contactEmail        String?
+  contactPhone        String?
+  description         String?
+
+  // Transparency scoring (computed, cached)
+  transparencyScore   Float?
+  transparencyGrade   TransparencyGrade?
+  scoreLastComputedAt DateTime?
+
+  // Denormalized stats
+  totalProjects       Int                @default(0)
+  activeProjects      Int                @default(0)
+  completedProjects   Int                @default(0)
+  delayedProjects     Int                @default(0)
+  totalGrievances     Int                @default(0)
+  avgDelayMonths      Float?
+
+  isActive            Boolean            @default(true)
+  isPublished         Boolean            @default(false)
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   projects   Project[]
+  documents  BuilderDocument[]
 
   @@index([slug])
   @@index([transparencyScore])
   @@map("builders")
 }
 
+model BuilderDocument {
+  id         String   @id @default(cuid())
+  builderId  String
+  docType    String
+  docLabel   String
+  fileKey    String
+  uploadedAt DateTime @default(now())
+
+  builder Builder @relation(fields: [builderId], references: [id], onDelete: Cascade)
+
+  @@map("builder_documents")
+}
+
 // ─── PROJECT ──────────────────────────────────────────────────────────────────
 
 model Project {
-  id                String        @id @default(cuid())
-  slug              String        @unique
-  name              String
-  builderId         String
-  locality          String
-  city              String
-  description       String?
-  coverImageUrl     String?
-  status            ProjectStatus @default(UNDER_CONSTRUCTION)
-  totalUnits        Int           @default(0)
-  lat               Float?
-  lng               Float?
-  isPublished       Boolean       @default(false)
-  transparencyScore Float?
-  transparencyGrade TransparencyGrade?
-  scoreUpdatedAt    DateTime?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id                    String        @id @default(cuid())
+  slug                  String        @unique
+  builderId             String
+  name                  String
+  reraNumber            String        @unique
+  status                ProjectStatus @default(UNDER_CONSTRUCTION)
+
+  // Location
+  locality              String
+  subLocality           String?
+  city                  String
+  pincode               String        @default("")
+  latitude              Float?
+  longitude             Float?
+  googleMapsUrl         String?
+
+  // Project details
+  description           String?
+  totalUnits            Int           @default(0)
+  completedUnits        Int           @default(0)
+  totalTowers           Int?
+  floorsPerTower        Int?
+  projectAreaSqFt       Float?
+  amenities             String[]
+  nearbyLandmarks       String[]
+
+  // Dates
+  reraRegistrationDate  DateTime?
+  reraExpiryDate        DateTime?
+  revisedCompletionDate DateTime?
+  actualCompletionDate  DateTime?
+
+  // Financial
+  approxPricePerSqFt    Int?
+  priceRangeLow         Int?
+  priceRangeHigh        Int?
+
+  // Media
+  coverImageUrl         String?
+  imageUrls             String[]
+
+  // Computed stats
+  delayMonths           Int           @default(0)
+  totalGrievances       Int           @default(0)
+  openGrievances        Int           @default(0)
+  verifiedBuyerCount    Int           @default(0)
+  transparencyScore     Float?
+  transparencyGrade     TransparencyGrade?
+
+  isPublished           Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
 
   builder          Builder            @relation(fields: [builderId], references: [id])
-  units            ProjectUnit[]
+  unitTypes        ProjectUnitType[]
   timelines        ProjectTimeline[]
   reraRecords      RERARecord[]
   grievances       Grievance[]
@@ -228,36 +289,41 @@ model Project {
   redFlags         ProjectRedFlag[]
   updateLogs       ProjectUpdateLog[]
 
-  @@index([slug])
   @@index([builderId])
-  @@index([city])
+  @@index([city, locality])
   @@index([status])
+  @@index([reraNumber])
   @@map("projects")
 }
 
-model ProjectUnit {
+model ProjectUnitType {
   id             String  @id @default(cuid())
   projectId      String
   bhkType        String
-  carpetAreaSqft Int
-  priceLow       Float?
-  priceHigh      Float?
+  carpetAreaSqFt Float
+  priceFrom      Int
+  priceTo        Int
+  totalUnits     Int
+  soldUnits      Int     @default(0)
+  floorPlanUrl   String?
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
-  @@map("project_units")
+  @@map("project_unit_types")
 }
 
 model ProjectTimeline {
-  id          String   @id @default(cuid())
-  projectId   String
-  milestone   String
-  plannedDate DateTime
-  actualDate  DateTime?
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String    @id @default(cuid())
+  projectId      String
+  milestoneLabel String
+  plannedDate    DateTime
+  actualDate     DateTime?
+  isCompleted    Boolean   @default(false)
+  notes          String?
+  source         String    @default("admin")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
@@ -266,41 +332,68 @@ model ProjectTimeline {
 }
 
 model ProjectUpdateLog {
-  id        String   @id @default(cuid())
-  projectId String
-  fieldName String
-  oldValue  String?
-  newValue  String?
-  updatedBy String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  projectId  String
+  updatedBy  String
+  field      String
+  oldValue   String?
+  newValue   String?
+  reason     String?
+  updatedAt  DateTime @default(now())
 
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id])
 
   @@index([projectId])
   @@map("project_update_logs")
 }
 
+model ProjectRedFlag {
+  id             String   @id @default(cuid())
+  projectId      String
+  flagType       String
+  severity       String   @default("WARNING")
+  title          String
+  description    String
+  isActive       Boolean  @default(true)
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  resolutionNote String?
+  detectedAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, isActive])
+  @@map("project_red_flags")
+}
+
 // ─── RERA ─────────────────────────────────────────────────────────────────────
 
 model RERARecord {
-  id                      String          @id @default(cuid())
-  projectId               String
-  reraNumber              String          @unique
-  status                  RERARecordStatus @default(REGISTERED)
-  registrationDate        DateTime
-  originalCompletionDate  DateTime
-  currentDeadline         DateTime
-  worksCompletedPct       Float           @default(0)
-  carpetAreaSoldPct       Float           @default(0)
-  promoterName            String
-  lastSyncedAt            DateTime?
-  createdAt               DateTime        @default(now())
-  updatedAt               DateTime        @updatedAt
+  id                   String           @id @default(cuid())
+  projectId            String
+  reraNumber           String
+  status               RERARecordStatus @default(REGISTERED)
+  registrationDate     DateTime
+  originalExpiryDate   DateTime
+  currentExpiryDate    DateTime
+  promoterName         String
+  worksDonePercentage  Float?
+  carpetAreaSoldPct    Float?
+  extensionGranted     Boolean          @default(false)
+  extensionReason      String?
+  rawData              Json?
+  lastSyncedAt         DateTime?
+  syncedByAdminId      String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
 
-  project    Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project    Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
   approvals  RERAApproval[]
   violations RERAViolation[]
 
+  @@unique([projectId, reraNumber])
   @@index([projectId])
   @@index([reraNumber])
   @@index([status])
@@ -308,13 +401,13 @@ model RERARecord {
 }
 
 model RERAApproval {
-  id           String     @id @default(cuid())
+  id           String    @id @default(cuid())
   reraRecordId String
   approvalType String
-  isObtained   Boolean    @default(false)
-  obtainedDate DateTime?
+  isObtained   Boolean   @default(false)
+  approvalDate DateTime?
   notes        String?
-  createdAt    DateTime   @default(now())
+  createdAt    DateTime  @default(now())
 
   reraRecord RERARecord @relation(fields: [reraRecordId], references: [id], onDelete: Cascade)
 
@@ -323,12 +416,16 @@ model RERAApproval {
 }
 
 model RERAViolation {
-  id           String   @id @default(cuid())
-  reraRecordId String
-  description  String
+  id            String    @id @default(cuid())
+  reraRecordId  String
   violationDate DateTime?
-  severity     String   @default("WARNING")
-  createdAt    DateTime @default(now())
+  violationType String    @default("GENERAL")
+  description   String
+  penaltyAmount Float?
+  isResolved    Boolean   @default(false)
+  resolvedDate  DateTime?
+  sourceUrl     String?
+  createdAt     DateTime  @default(now())
 
   reraRecord RERARecord @relation(fields: [reraRecordId], references: [id], onDelete: Cascade)
 
@@ -336,81 +433,90 @@ model RERAViolation {
   @@map("rera_violations")
 }
 
-// ─── RED FLAGS ────────────────────────────────────────────────────────────────
-
-model ProjectRedFlag {
-  id          String         @id @default(cuid())
-  projectId   String
-  severity    RedFlagSeverity
-  title       String
-  description String
-  isActive    Boolean        @default(true)
-  resolvedAt  DateTime?
-  resolvedBy  String?
-  resolutionNote String?
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-
-  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@index([projectId])
-  @@index([isActive])
-  @@map("project_red_flags")
-}
-
 // ─── GRIEVANCES ───────────────────────────────────────────────────────────────
 
 model Grievance {
-  id          String            @id @default(cuid())
-  referenceId String            @unique @default(cuid())
-  projectId   String
-  userId      String
-  category    GrievanceCategory
-  severity    GrievanceSeverity
-  title       String
-  description String
-  status      GrievanceStatus   @default(SUBMITTED)
-  isAnonymous Boolean           @default(false)
-  upvotes     Int               @default(0)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  id                String            @id @default(cuid())
+  referenceId       String            @unique @default(cuid())
+  projectId         String
+  userId            String
+  category          GrievanceCategory
+  severity          GrievanceSeverity
+  status            GrievanceStatus   @default(SUBMITTED)
+  title             String
+  description       String
+  isAnonymous       Boolean           @default(false)
+  isVerifiedBuyer   Boolean           @default(false)
+  isPubliclyVisible Boolean           @default(true)
+  upvoteCount       Int               @default(0)
 
-  project   Project             @relation(fields: [projectId], references: [id])
-  user      User                @relation(fields: [userId], references: [id])
-  evidences GrievanceEvidence[]
+  // Resolution tracking
+  builderResponse   String?
+  resolutionNotes   String?
+  resolvedAt        DateTime?
+  escalatedAt       DateTime?
+  escalatedTo       String?
 
-  @@index([projectId])
+  // Admin fields
+  adminNotes        String?
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  project       Project              @relation(fields: [projectId], references: [id])
+  user          User                 @relation(fields: [userId], references: [id])
+  evidenceFiles GrievanceEvidence[]
+  statusHistory GrievanceStatusHistory[]
+
+  @@index([projectId, status])
   @@index([userId])
-  @@index([status])
   @@index([category])
   @@map("grievances")
 }
 
 model GrievanceEvidence {
-  id          String   @id @default(cuid())
-  grievanceId String
-  fileKey     String
-  fileName    String
-  fileLabel   String?
+  id            String   @id @default(cuid())
+  grievanceId   String
+  fileKey       String
+  fileType      String
+  fileName      String
+  fileLabel     String?
   fileSizeBytes Int
-  createdAt   DateTime @default(now())
+  uploadedAt    DateTime @default(now())
 
   grievance Grievance @relation(fields: [grievanceId], references: [id], onDelete: Cascade)
 
   @@index([grievanceId])
-  @@map("grievance_evidences")
+  @@map("grievance_evidence")
+}
+
+model GrievanceStatusHistory {
+  id          String          @id @default(cuid())
+  grievanceId String
+  fromStatus  GrievanceStatus
+  toStatus    GrievanceStatus
+  changedBy   String
+  note        String?
+  changedAt   DateTime        @default(now())
+
+  grievance Grievance @relation(fields: [grievanceId], references: [id], onDelete: Cascade)
+
+  @@map("grievance_status_history")
 }
 
 // ─── COMMUNITY ────────────────────────────────────────────────────────────────
 
 model CommunityGroup {
-  id               String               @id @default(cuid())
-  projectId        String               @unique
-  status           CommunityGroupStatus @default(ACTIVE)
-  hasWhatsAppGroup Boolean              @default(false)
+  id                String               @id @default(cuid())
+  projectId         String               @unique
+  name              String
+  status            CommunityGroupStatus @default(ACTIVE)
+  memberCount       Int                  @default(0)
+  description       String?
+  hasWhatsAppGroup  Boolean              @default(false)
   whatsAppAdminNote String?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
 
   project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   threads Thread[]
@@ -426,9 +532,12 @@ model Thread {
   title            String
   body             String
   isPinned         Boolean  @default(false)
+  isLocked         Boolean  @default(false)
+  replyCount       Int      @default(0)
+  upvoteCount      Int      @default(0)
+  isVerifiedBuyer  Boolean  @default(false)
   isAnonymous      Boolean  @default(false)
-  upvotes          Int      @default(0)
-  isDeleted        Boolean  @default(false)
+  isVisible        Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -442,20 +551,21 @@ model Thread {
 }
 
 model Reply {
-  id            String   @id @default(cuid())
-  threadId      String
-  authorId      String
-  parentReplyId String?
-  body          String
-  isAnonymous   Boolean  @default(false)
-  upvotes       Int      @default(0)
-  isDeleted     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id              String   @id @default(cuid())
+  threadId        String
+  authorId        String
+  parentReplyId   String?
+  body            String
+  upvoteCount     Int      @default(0)
+  isVerifiedBuyer Boolean  @default(false)
+  isAnonymous     Boolean  @default(false)
+  isVisible       Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  thread      Thread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  author      User    @relation(fields: [authorId], references: [id])
-  parentReply Reply?  @relation("NestedReplies", fields: [parentReplyId], references: [id])
+  thread        Thread  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author        User    @relation(fields: [authorId], references: [id])
+  parentReply   Reply?  @relation("NestedReplies", fields: [parentReplyId], references: [id])
   nestedReplies Reply[] @relation("NestedReplies")
 
   @@index([threadId])
@@ -469,29 +579,37 @@ model LegalResource {
   id                 String                @id @default(cuid())
   slug               String                @unique
   title              String
+  category           LegalResourceCategory
   summary            String
   body               String
-  category           LegalResourceCategory
-  readingTimeMinutes Int                   @default(5)
+  tags               String[]
   isPublished        Boolean               @default(false)
+  readTimeMin        Int?
+  authorName         String?
+  reviewedBy         String?
+  reviewedAt         DateTime?
   publishedAt        DateTime?
   createdAt          DateTime              @default(now())
   updatedAt          DateTime              @updatedAt
 
-  @@index([slug])
   @@index([category])
+  @@index([slug])
   @@map("legal_resources")
 }
 
 model LegalExpert {
-  id           String   @id @default(cuid())
-  name         String
-  speciality   String
-  locality     String
-  contactEmail String?
-  contactPhone String?
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
+  id             String   @id @default(cuid())
+  name           String
+  specialization String[]
+  city           String
+  barCouncilId   String?
+  profileSummary String
+  contactEmail   String?
+  contactPhone   String?
+  websiteUrl     String?
+  offersProBono  Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
 
   @@map("legal_experts")
 }
@@ -499,34 +617,34 @@ model LegalExpert {
 // ─── NOTIFICATIONS ────────────────────────────────────────────────────────────
 
 model NotificationQueue {
-  id          String   @id @default(cuid())
-  userId      String
-  type        String
-  channel     String
-  payload     Json
-  status      String   @default("PENDING")
-  attempts    Int      @default(0)
-  scheduledAt DateTime @default(now())
-  sentAt      DateTime?
-  createdAt   DateTime @default(now())
+  id            String    @id @default(cuid())
+  userId        String
+  channel       String
+  templateKey   String
+  payload       Json
+  status        String    @default("pending")
+  attempts      Int       @default(0)
+  lastAttemptAt DateTime?
+  sentAt        DateTime?
+  createdAt     DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id])
 
-  @@index([userId])
-  @@index([status])
+  @@index([status, attempts])
   @@map("notification_queue")
 }
 
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
 
 model AdminAction {
-  id         String   @id @default(cuid())
-  adminId    String
-  actionType String
-  entityType String
-  entityId   String
-  notes      String?
-  createdAt  DateTime @default(now())
+  id          String   @id @default(cuid())
+  adminId     String
+  actionType  String
+  entityType  String
+  entityId    String
+  notes       String?
+  metadata    Json?
+  performedAt DateTime @default(now())
 
   admin User @relation(fields: [adminId], references: [id])
 

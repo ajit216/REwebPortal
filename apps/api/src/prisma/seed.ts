@@ -2,16 +2,26 @@
  * Database Seed — REwebPortal
  *
  * Seeds development and staging databases with:
- * - 15 reputed builders in Mumbai & Thane
- * - 10 sample projects with realistic RERA data
- * - Sample grievances, community threads, legal resources
- * - 1 admin account
+ * - 10 reputed builders in Mumbai & Thane
+ * - 3 sample projects with RERA data, red flags, grievances, and community threads
+ * - 4 published legal articles
+ * - 1 admin account + 1 sample buyer
  *
- * Run: pnpm --filter api prisma db seed
- *      (or: npx prisma db seed from apps/api directory)
+ * Run: cd apps/api && npx prisma db seed
+ * Or: pnpm --filter api prisma db seed
  */
 
-import { PrismaClient, UserRole, ProjectStatus, GrievanceCategory, GrievanceSeverity, GrievanceStatus, RERARecordStatus, LegalResourceCategory, TransparencyGrade } from '@prisma/client'
+import {
+  PrismaClient,
+  UserRole,
+  ProjectStatus,
+  GrievanceCategory,
+  GrievanceSeverity,
+  GrievanceStatus,
+  RERARecordStatus,
+  LegalResourceCategory,
+  TransparencyGrade,
+} from '@prisma/client'
 import * as bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
@@ -54,6 +64,7 @@ async function main() {
       avgDelayMonths: 8.0,
       transparencyScore: 72.0,
       transparencyGrade: TransparencyGrade.B,
+      isPublished: true,
     },
     {
       slug: 'godrej-properties',
@@ -71,6 +82,7 @@ async function main() {
       avgDelayMonths: 4.0,
       transparencyScore: 84.0,
       transparencyGrade: TransparencyGrade.A,
+      isPublished: true,
     },
     {
       slug: 'oberoi-realty',
@@ -88,40 +100,7 @@ async function main() {
       avgDelayMonths: 3.0,
       transparencyScore: 88.0,
       transparencyGrade: TransparencyGrade.A,
-    },
-    {
-      slug: 'hiranandani-group',
-      name: 'Hiranandani Group',
-      legalEntityName: 'House of Hiranandani',
-      cinNumber: null,
-      establishedYear: 1978,
-      headquartersCity: 'Mumbai',
-      websiteUrl: 'https://www.hiranandani.com',
-      totalProjects: 9,
-      activeProjects: 5,
-      completedProjects: 3,
-      delayedProjects: 1,
-      totalGrievances: 54,
-      avgDelayMonths: 2.0,
-      transparencyScore: 91.0,
-      transparencyGrade: TransparencyGrade.A_PLUS,
-    },
-    {
-      slug: 'lt-realty',
-      name: 'L&T Realty',
-      legalEntityName: 'L&T Realty Ltd',
-      cinNumber: 'U45400MH2007PLC172725',
-      establishedYear: 1994,
-      headquartersCity: 'Mumbai',
-      websiteUrl: 'https://www.ltrealty.com',
-      totalProjects: 11,
-      activeProjects: 7,
-      completedProjects: 3,
-      delayedProjects: 2,
-      totalGrievances: 97,
-      avgDelayMonths: 5.0,
-      transparencyScore: 79.0,
-      transparencyGrade: TransparencyGrade.B,
+      isPublished: true,
     },
     {
       slug: 'kalpataru-group',
@@ -139,6 +118,7 @@ async function main() {
       avgDelayMonths: 11.0,
       transparencyScore: 65.0,
       transparencyGrade: TransparencyGrade.B,
+      isPublished: true,
     },
     {
       slug: 'rustomjee',
@@ -156,6 +136,7 @@ async function main() {
       avgDelayMonths: 9.0,
       transparencyScore: 68.0,
       transparencyGrade: TransparencyGrade.B,
+      isPublished: true,
     },
     {
       slug: 'mahindra-lifespaces',
@@ -173,6 +154,7 @@ async function main() {
       avgDelayMonths: 3.5,
       transparencyScore: 85.0,
       transparencyGrade: TransparencyGrade.A,
+      isPublished: true,
     },
     {
       slug: 'piramal-realty',
@@ -190,6 +172,7 @@ async function main() {
       avgDelayMonths: 6.0,
       transparencyScore: 74.0,
       transparencyGrade: TransparencyGrade.B,
+      isPublished: true,
     },
     {
       slug: 'runwal-group',
@@ -207,6 +190,43 @@ async function main() {
       avgDelayMonths: 7.5,
       transparencyScore: 70.0,
       transparencyGrade: TransparencyGrade.B,
+      isPublished: true,
+    },
+    {
+      slug: 'lt-realty',
+      name: 'L&T Realty',
+      legalEntityName: 'L&T Realty Ltd',
+      cinNumber: 'U45400MH2007PLC172725',
+      establishedYear: 1994,
+      headquartersCity: 'Mumbai',
+      websiteUrl: 'https://www.ltrealty.com',
+      totalProjects: 11,
+      activeProjects: 7,
+      completedProjects: 3,
+      delayedProjects: 2,
+      totalGrievances: 97,
+      avgDelayMonths: 5.0,
+      transparencyScore: 79.0,
+      transparencyGrade: TransparencyGrade.B,
+      isPublished: true,
+    },
+    {
+      slug: 'hiranandani-group',
+      name: 'Hiranandani Group',
+      legalEntityName: 'House of Hiranandani',
+      cinNumber: null,
+      establishedYear: 1978,
+      headquartersCity: 'Mumbai',
+      websiteUrl: 'https://www.hiranandani.com',
+      totalProjects: 9,
+      activeProjects: 5,
+      completedProjects: 3,
+      delayedProjects: 1,
+      totalGrievances: 54,
+      avgDelayMonths: 2.0,
+      transparencyScore: 91.0,
+      transparencyGrade: TransparencyGrade.A_PLUS,
+      isPublished: true,
     },
   ]
 
@@ -215,8 +235,19 @@ async function main() {
   for (const b of buildersData) {
     const builder = await prisma.builder.upsert({
       where: { slug: b.slug },
-      update: { transparencyScore: b.transparencyScore, transparencyGrade: b.transparencyGrade },
-      create: { ...b, scoreLastComputedAt: new Date() },
+      update: {
+        transparencyScore: b.transparencyScore,
+        transparencyGrade: b.transparencyGrade,
+        totalProjects: b.totalProjects,
+        activeProjects: b.activeProjects,
+        delayedProjects: b.delayedProjects,
+        totalGrievances: b.totalGrievances,
+        avgDelayMonths: b.avgDelayMonths,
+      },
+      create: {
+        ...b,
+        scoreLastComputedAt: new Date(),
+      },
     })
     builders[b.slug] = builder
     console.log(`✅ Builder: ${builder.name} (${builder.transparencyGrade})`)
@@ -246,7 +277,7 @@ async function main() {
       completedUnits: 1800,
       totalTowers: 12,
       floorsPerTower: 32,
-      amenities: ['Swimming Pool', 'Gymnasium', 'Clubhouse', 'Jogging Track', 'Children Play Area', 'Indoor Games'],
+      amenities: ['Swimming Pool', 'Gymnasium', 'Clubhouse', 'Jogging Track', 'Children Play Area'],
       nearbyLandmarks: ['Dombivali Station (8km)', 'Kalyan Station (12km)', 'Palava Lake'],
       reraRegistrationDate: new Date('2019-06-15'),
       reraExpiryDate: new Date('2024-12-31'),
@@ -334,10 +365,10 @@ async function main() {
     },
   })
 
-  console.log(`✅ Projects seeded: ${[project1, project2, project3].map(p => p.name).join(', ')}`)
+  console.log(`✅ Projects seeded: ${project1.name}, ${project2.name}, ${project3.name}`)
 
   // ─── 4. RERA Records ────────────────────────────────────────────────────────
-  await prisma.reraRecord.upsert({
+  await prisma.rERARecord.upsert({
     where: { projectId_reraNumber: { projectId: project1.id, reraNumber: 'P51900000001' } },
     update: {},
     create: {
@@ -349,7 +380,7 @@ async function main() {
       currentExpiryDate: new Date('2026-06-30'),
       promoterName: 'Macrotech Developers Ltd',
       worksDonePercentage: 74.0,
-      carpetAreaSold: 82.0,
+      carpetAreaSoldPct: 82.0,
       extensionGranted: true,
       extensionReason: 'COVID-19 pandemic + supply chain disruption',
       lastSyncedAt: new Date(),
@@ -357,7 +388,27 @@ async function main() {
     },
   })
 
-  // ─── 5. Red Flags ────────────────────────────────────────────────────────────
+  await prisma.rERARecord.upsert({
+    where: { projectId_reraNumber: { projectId: project2.id, reraNumber: 'P51900000002' } },
+    update: {},
+    create: {
+      projectId: project2.id,
+      reraNumber: 'P51900000002',
+      status: RERARecordStatus.LAPSED,
+      registrationDate: new Date('2018-03-20'),
+      originalExpiryDate: new Date('2022-12-31'),
+      currentExpiryDate: new Date('2022-12-31'),
+      promoterName: 'Keystone Realtors Ltd',
+      worksDonePercentage: 89.0,
+      carpetAreaSoldPct: 91.0,
+      lastSyncedAt: new Date(),
+      syncedByAdminId: admin.id,
+    },
+  })
+
+  console.log('✅ RERA records seeded')
+
+  // ─── 5. Red Flags ─────────────────────────────────────────────────────────
   await prisma.projectRedFlag.upsert({
     where: { id: 'seed-redflag-001' },
     update: {},
@@ -388,20 +439,7 @@ async function main() {
 
   console.log('✅ Red flags seeded')
 
-  // ─── 6. Community Groups + Threads ─────────────────────────────────────────
-  const communityGroup = await prisma.communityGroup.upsert({
-    where: { projectId: project1.id },
-    update: {},
-    create: {
-      projectId: project1.id,
-      name: 'Lodha Palava City — Residents Community',
-      hasWhatsAppGroup: true,
-      whatsAppAdminNote: 'Click "Request to Join" below. A platform admin will connect you via your registered mobile number within 24 hours.',
-      memberCount: 134,
-    },
-  })
-
-  // Sample buyer user for threads
+  // ─── 6. Sample Buyer + Community ───────────────────────────────────────────
   const buyerUser = await prisma.user.upsert({
     where: { phone: '+919876543210' },
     update: {},
@@ -419,6 +457,19 @@ async function main() {
     include: { buyerProfile: true },
   })
 
+  // Community group for project 1
+  const communityGroup = await prisma.communityGroup.upsert({
+    where: { projectId: project1.id },
+    update: {},
+    create: {
+      projectId: project1.id,
+      name: 'Lodha Palava City — Residents Community',
+      hasWhatsAppGroup: true,
+      whatsAppAdminNote: 'Click "Request to Join" below. A platform admin will connect you via your registered mobile number within 24 hours.',
+      memberCount: 134,
+    },
+  })
+
   await prisma.thread.upsert({
     where: { id: 'seed-thread-001' },
     update: {},
@@ -427,7 +478,7 @@ async function main() {
       communityGroupId: communityGroup.id,
       authorId: buyerUser.id,
       title: 'Anyone got possession update for Tower B?',
-      body: 'Hi all, I booked a 3BHK in Tower B back in 2021. The original possession date was Dec 2024. Its now May 2025 and the builder hasnt given any update. Has anyone received an update from the site manager? Please share what you know.',
+      body: 'Hi all, I booked a 3BHK in Tower B back in 2021. The original possession date was Dec 2024. Its now May 2025 and the builder hasnt given any update. Has anyone received anything from the site manager?',
       isPinned: false,
       isLocked: false,
       replyCount: 12,
@@ -459,9 +510,9 @@ async function main() {
     },
   })
 
-  console.log('✅ Community groups and threads seeded')
+  console.log('✅ Community group and threads seeded')
 
-  // ─── 7. Sample Grievances ───────────────────────────────────────────────────
+  // ─── 7. Sample Grievances ──────────────────────────────────────────────────
   await prisma.grievance.upsert({
     where: { id: 'seed-grievance-001' },
     update: {},
@@ -505,7 +556,7 @@ async function main() {
 
   console.log('✅ Grievances seeded')
 
-  // ─── 8. Legal Resources ──────────────────────────────────────────────────────
+  // ─── 8. Legal Resources ────────────────────────────────────────────────────
   const legalArticles = [
     {
       id: 'seed-legal-001',
@@ -513,9 +564,10 @@ async function main() {
       title: 'How to File a RERA Complaint in Maharashtra',
       summary: 'Step-by-step guide to filing a complaint with MahaRERA against a builder for possession delay, construction defects, or other violations.',
       category: LegalResourceCategory.RERA_RIGHTS,
-      body: '## Overview\n\nMahaRERA (Maharashtra Real Estate Regulatory Authority) provides a legal mechanism for homebuyers to file complaints against builders...',
-      readingTimeMinutes: 8,
+      body: '## Overview\n\nMahaRERA provides a legal mechanism for homebuyers to file complaints against builders...',
+      readTimeMin: 8,
       reviewedBy: 'Advocate Sunita Sharma, RERA Specialist',
+      tags: ['RERA', 'complaint', 'MahaRERA', 'builder', 'possession'],
       isPublished: true,
     },
     {
@@ -525,8 +577,9 @@ async function main() {
       summary: 'Understanding Section 18 of RERA — when you can claim a refund or monthly interest for possession delay.',
       category: LegalResourceCategory.RERA_RIGHTS,
       body: '## What is Section 18?\n\nSection 18 of the Real Estate (Regulation and Development) Act, 2016 gives buyers the right to...',
-      readingTimeMinutes: 6,
+      readTimeMin: 6,
       reviewedBy: 'Advocate Ravi Desai, Property Law',
+      tags: ['RERA', 'Section 18', 'refund', 'interest', 'delay'],
       isPublished: true,
     },
     {
@@ -535,9 +588,10 @@ async function main() {
       title: 'Consumer Forum vs RERA — Which Forum Should You Choose?',
       summary: 'A plain-language comparison of when to go to RERA and when the Consumer Forum is a better choice.',
       category: LegalResourceCategory.CONSUMER_FORUM,
-      body: '## Key Differences\n\n| Factor | RERA | Consumer Forum |\n|---|---|---|\n| Jurisdiction | Property disputes only | All consumer goods/services |\n...',
-      readingTimeMinutes: 7,
+      body: '## Key Differences\n\n| Factor | RERA | Consumer Forum |\n|---|---|---|\n| Jurisdiction | Property disputes only | All consumer goods/services |',
+      readTimeMin: 7,
       reviewedBy: 'Advocate Priya Nair, Consumer Law',
+      tags: ['consumer forum', 'RERA', 'dispute', 'comparison'],
       isPublished: true,
     },
     {
@@ -546,9 +600,10 @@ async function main() {
       title: 'Real Estate Glossary: OC, CC, IOD, BCC — Explained',
       summary: 'Plain-English definitions of the most confusing real estate and RERA terms that every homebuyer should know.',
       category: LegalResourceCategory.GLOSSARY,
-      body: '## IOD — Intimation of Disapproval\n\nDespite the confusing name, IOD is actually the first approval a builder receives...',
-      readingTimeMinutes: 5,
+      body: '## IOD — Intimation of Disapproval\n\nDespite the confusing name, IOD is actually the first approval a builder receives from the BMC...',
+      readTimeMin: 5,
       reviewedBy: 'REwebPortal Editorial Team',
+      tags: ['OC', 'CC', 'IOD', 'BCC', 'glossary', 'real estate terms'],
       isPublished: true,
     },
   ]
@@ -560,14 +615,31 @@ async function main() {
       create: {
         ...article,
         publishedAt: new Date('2025-03-01'),
-        updatedAt: new Date(),
       },
     })
   }
 
   console.log(`✅ Legal articles seeded: ${legalArticles.length}`)
 
-  // ─── Done ────────────────────────────────────────────────────────────────────
+  // ─── 9. Legal Expert ──────────────────────────────────────────────────────
+  await prisma.legalExpert.upsert({
+    where: { id: 'seed-expert-001' },
+    update: {},
+    create: {
+      id: 'seed-expert-001',
+      name: 'Advocate Sunita Sharma',
+      specialization: ['RERA', 'Property Law', 'Consumer Forum'],
+      city: 'Mumbai',
+      barCouncilId: 'MH/12345/2005',
+      profileSummary: 'RERA specialist with 18 years of experience in property disputes. Handled 200+ MahaRERA cases with an 80% success rate.',
+      offersProBono: false,
+      isActive: true,
+    },
+  })
+
+  console.log('✅ Legal experts seeded')
+
+  // ─── Done ──────────────────────────────────────────────────────────────────
   console.log('\n🎉 Seed complete!')
   console.log('   Admin login: admin@rewebportal.in / Admin@REwebPortal2025!')
   console.log('   Test buyer:  +919876543210 (use OTP flow in dev)')

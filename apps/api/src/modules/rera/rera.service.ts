@@ -12,9 +12,8 @@ export interface RERAFetchResult {
   currentExpiryDate: string | null
   promoterName: string | null
   worksDonePercentage: number | null
-  carpetAreaSold: number | null
+  carpetAreaSoldPct: number | null
   violations: string[]
-  rawHtml?: string // stored for admin review, not exposed via API
 }
 
 export interface RERAStagedDiff {
@@ -22,11 +21,7 @@ export interface RERAStagedDiff {
   reraNumber: string
   fetched: RERAFetchResult
   current: Partial<RERAFetchResult> | null
-  changes: Array<{
-    field: string
-    from: string | null
-    to: string | null
-  }>
+  changes: Array<{ field: string; from: string | null; to: string | null }>
   redFlagCandidates: Array<{
     flagType: string
     severity: 'WARNING' | 'CRITICAL'
@@ -40,8 +35,8 @@ export interface RERAStagedDiff {
 export class RERAService {
   private readonly logger = new Logger(RERAService.name)
 
-  // Staged diffs: in-memory map keyed by projectId, pending admin approval
-  // In production at scale, move this to Redis with TTL
+  // In-memory staged diffs awaiting admin approval
+  // In production at scale, persist to Redis with TTL
   private stagedDiffs = new Map<string, RERAStagedDiff>()
 
   constructor(
@@ -50,28 +45,27 @@ export class RERAService {
   ) {}
 
   /**
-   * Fetch live RERA data from MahaRERA portal for a given project.
-   * Returns a staged diff for admin review — nothing is committed to DB yet.
-   *
-   * NOTE: MahaRERA has no public API. This is a server-side HTML fetch.
-   * Admin must trigger this manually and review the diff before committing.
+   * Fetch live RERA data from MahaRERA portal for a project.
+   * Returns a staged diff for admin review — nothing committed to DB yet.
    */
   async stageFetch(projectId: string): Promise<RERAStagedDiff> {
     const project = await this.prisma.project.findUniqueOrThrow({
       where: { id: projectId },
-      include: { reraRecords: { orderBy: { createdAt: 'desc' }, take: 1 } },
+      include: {
+        reraRecords: { orderBy: { createdAt: 'desc' }, take: 1 },
+      },
     })
 
     const reraNumber = project.reraNumber
     this.logger.log(`Fetching MahaRERA data for RERA number: ${reraNumber}`)
 
-    // Fetch MahaRERA project detail page
-    // URL pattern for MahaRERA project lookup (update if portal changes)
     const url = `https://maharera.mahaonline.gov.in/Modules/PublicUser/Registration/Project_Detail/${reraNumber}`
 
     let html = ''
     try {
-      const response = await firstValueFrom(this.http.get<string>(url, { responseType: 'text' }))
+      const response = await firstValueFrom(
+        this.http.get<string>(url, { responseType: 'text' })
+      )
       html = response.data
     } catch (err) {
       this.logger.error(`Failed to fetch MahaRERA page for ${reraNumber}`, err)
@@ -94,7 +88,7 @@ export class RERAService {
             status: current.status,
             currentExpiryDate: current.currentExpiryDate?.toISOString() ?? null,
             worksDonePercentage: current.worksDonePercentage ?? null,
-            carpetAreaSold: current.carpetAreaSold ?? null,
+            carpetAreaSoldPct: current.carpetAreaSoldPct ?? null,
           }
         : null,
       changes,
@@ -108,14 +102,13 @@ export class RERAService {
 
   /**
    * Commit the staged diff to the database after admin approval.
-   * Creates/updates RERARecord and optionally creates red flag entries.
    */
   async commitStagedDiff(
     projectId: string,
     adminUserId: string,
     note: string,
     publishRedFlags: boolean[],
-  ): Promise<void> {
+  ): Promise<{ committed: boolean }> {
     const diff = this.stagedDiffs.get(projectId)
     if (!diff) throw new Error('No staged RERA diff found for this project. Please re-trigger sync.')
 
@@ -123,32 +116,42 @@ export class RERAService {
 
     await this.prisma.$transaction(async (tx) => {
       // Upsert RERARecord
-      await tx.reraRecord.upsert({
-        where: { projectId_reraNumber: { projectId, reraNumber: fetched.reraNumber } },
+      await tx.rERARecord.upsert({
+        where: {
+          projectId_reraNumber: { projectId, reraNumber: fetched.reraNumber },
+        },
         create: {
           projectId,
           reraNumber: fetched.reraNumber,
           status: fetched.status as any,
-          registrationDate: fetched.registrationDate ? new Date(fetched.registrationDate) : new Date(),
-          originalExpiryDate: fetched.originalExpiryDate ? new Date(fetched.originalExpiryDate) : new Date(),
-          currentExpiryDate: fetched.currentExpiryDate ? new Date(fetched.currentExpiryDate) : new Date(),
+          registrationDate: fetched.registrationDate
+            ? new Date(fetched.registrationDate)
+            : new Date(),
+          originalExpiryDate: fetched.originalExpiryDate
+            ? new Date(fetched.originalExpiryDate)
+            : new Date(),
+          currentExpiryDate: fetched.currentExpiryDate
+            ? new Date(fetched.currentExpiryDate)
+            : new Date(),
           promoterName: fetched.promoterName ?? '',
-          worksDonePercentage: fetched.worksDonePercentage ?? null,
-          carpetAreaSold: fetched.carpetAreaSold ?? null,
+          worksDonePercentage: fetched.worksDonePercentage,
+          carpetAreaSoldPct: fetched.carpetAreaSoldPct,
           lastSyncedAt: new Date(),
           syncedByAdminId: adminUserId,
         },
         update: {
           status: fetched.status as any,
-          currentExpiryDate: fetched.currentExpiryDate ? new Date(fetched.currentExpiryDate) : undefined,
-          worksDonePercentage: fetched.worksDonePercentage ?? null,
-          carpetAreaSold: fetched.carpetAreaSold ?? null,
+          currentExpiryDate: fetched.currentExpiryDate
+            ? new Date(fetched.currentExpiryDate)
+            : undefined,
+          worksDonePercentage: fetched.worksDonePercentage,
+          carpetAreaSoldPct: fetched.carpetAreaSoldPct,
           lastSyncedAt: new Date(),
           syncedByAdminId: adminUserId,
         },
       })
 
-      // Create red flags for those the admin approved
+      // Create approved red flags
       for (let i = 0; i < diff.redFlagCandidates.length; i++) {
         if (publishRedFlags[i]) {
           const candidate = diff.redFlagCandidates[i]
@@ -168,19 +171,23 @@ export class RERAService {
       // Log admin action
       await tx.adminAction.create({
         data: {
-          adminUserId,
+          adminId: adminUserId,
           actionType: 'RERA_SYNC_COMMITTED',
           entityType: 'Project',
           entityId: projectId,
-          note,
-          metadata: { reraNumber: fetched.reraNumber, changesCount: diff.changes.length },
+          notes: note,
+          metadata: {
+            reraNumber: fetched.reraNumber,
+            changesCount: diff.changes.length,
+          },
         },
       })
     })
 
-    // Invalidate cache (Redis) — implement in CacheService when added
     this.logger.log(`RERA sync committed for project ${projectId} by admin ${adminUserId}`)
     this.stagedDiffs.delete(projectId)
+
+    return { committed: true }
   }
 
   getStagedDiff(projectId: string): RERAStagedDiff | undefined {
@@ -192,7 +199,6 @@ export class RERAService {
   private parseRERAHtml(html: string, reraNumber: string): RERAFetchResult {
     const $ = cheerio.load(html)
 
-    // Selector paths — update if MahaRERA portal HTML structure changes
     const getText = (selector: string): string | null => {
       const text = $(selector).first().text().trim()
       return text.length > 0 ? text : null
@@ -200,7 +206,6 @@ export class RERAService {
 
     const parseDate = (raw: string | null): string | null => {
       if (!raw) return null
-      // Parse DD/MM/YYYY to ISO string
       const parts = raw.split('/')
       if (parts.length === 3) {
         return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`).toISOString()
@@ -214,8 +219,8 @@ export class RERAService {
       return isNaN(num) ? null : num
     }
 
-    // NOTE: These selectors are illustrative. Actual MahaRERA HTML must be inspected
-    // and selectors updated to match the live portal's DOM structure.
+    // NOTE: Selectors are illustrative. MahaRERA portal HTML must be inspected
+    // and selectors updated to match the live DOM structure.
     return {
       reraNumber,
       status: getText('.rera-status-label') ?? 'REGISTERED',
@@ -224,13 +229,13 @@ export class RERAService {
       currentExpiryDate: parseDate(getText('.rera-current-expiry')),
       promoterName: getText('.rera-promoter-name'),
       worksDonePercentage: parsePercent(getText('.rera-works-done')),
-      carpetAreaSold: parsePercent(getText('.rera-carpet-sold')),
+      carpetAreaSoldPct: parsePercent(getText('.rera-carpet-sold')),
       violations: [],
     }
   }
 
   private computeDiff(
-    current: Partial<RERAFetchResult> | null,
+    current: any | null,
     fetched: RERAFetchResult,
   ): Array<{ field: string; from: string | null; to: string | null }> {
     const changes: Array<{ field: string; from: string | null; to: string | null }> = []
@@ -238,7 +243,7 @@ export class RERAService {
       'status',
       'currentExpiryDate',
       'worksDonePercentage',
-      'carpetAreaSold',
+      'carpetAreaSoldPct',
     ]
 
     for (const field of fields) {
@@ -255,24 +260,24 @@ export class RERAService {
   private detectRedFlags(
     fetched: RERAFetchResult,
     project: any,
-  ): Array<{ flagType: string; severity: 'WARNING' | 'CRITICAL'; title: string; description: string }> {
-    const candidates = []
+  ): RERAStagedDiff['redFlagCandidates'] {
+    const candidates: RERAStagedDiff['redFlagCandidates'] = []
 
     if (fetched.status === 'LAPSED') {
       candidates.push({
         flagType: 'rera_lapsed',
-        severity: 'CRITICAL' as const,
+        severity: 'CRITICAL',
         title: 'RERA Registration Lapsed',
-        description: `This project's RERA registration (${fetched.reraNumber}) has lapsed and has not been renewed. Buyers have legal rights under Section 18 of the Real Estate (Regulation and Development) Act.`,
+        description: `This project's RERA registration (${fetched.reraNumber}) has lapsed and has not been renewed. Buyers have legal rights under Section 18 of RERA.`,
       })
     }
 
     if (fetched.status === 'EXTENDED') {
       candidates.push({
         flagType: 'rera_extended',
-        severity: 'WARNING' as const,
+        severity: 'WARNING',
         title: 'RERA Extension Obtained — Revised Deadline Applies',
-        description: `The builder has obtained a RERA extension. The revised completion deadline is now ${fetched.currentExpiryDate ?? 'updated'}. Buyers should monitor project progress closely.`,
+        description: `The builder has obtained a RERA extension. The revised completion deadline is now ${fetched.currentExpiryDate ?? 'updated'}.`,
       })
     }
 
