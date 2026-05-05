@@ -89,7 +89,7 @@ export function ProjectCard({ project, redFlags = [] }: ProjectCardProps) {
 
         {/* CTA */}
         <div className="mt-4 flex items-center justify-between">
-          <span className="font-mono text-xs text-neutral-400">{project.reraNumber}</span>
+          <span className="font-mono text-xs text-neutral-400 truncate max-w-[120px]">{project.reraNumber}</span>
           <span className="flex items-center gap-1 text-sm font-semibold text-primary-500 group-hover:gap-2 transition-all">
             View Project <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </span>

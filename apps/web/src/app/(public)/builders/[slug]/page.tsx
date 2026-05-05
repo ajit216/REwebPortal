@@ -140,6 +140,9 @@ export default function BuilderDetailPage({ params }: PageProps) {
         <div className="space-y-4">
           <div className="rounded-xl border border-neutral-200 bg-white p-5 space-y-3">
             <h3 className="font-heading text-sm font-semibold text-neutral-900">Quick Actions</h3>
+            <Button className="w-full" asChild>
+              <Link href={`/builders/${builder.slug}/track-record`}>Full Track Record →</Link>
+            </Button>
             <Button variant="outline" className="w-full" asChild>
               <Link href="/builders/compare">Compare with Others</Link>
             </Button>
