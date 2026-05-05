@@ -374,7 +374,7 @@ export default function BuyerCheckPage({ params }: PageProps) {
           </Link>
         </Button>
         <Button asChild>
-          <Link href="/login?next=/grievances/new">
+          <Link href="/grievances/new">
             <Flag className="h-4 w-4" />
             File a Grievance
           </Link>

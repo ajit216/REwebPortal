@@ -1,12 +1,13 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { Shield, Building, RefreshCw, Flag, Eye, AlertTriangle, CheckCircle, LayoutDashboard, BarChart2 } from 'lucide-react'
+import { Shield, Building, RefreshCw, Flag, Eye, AlertTriangle, CheckCircle, LayoutDashboard, BarChart2, Users } from 'lucide-react'
 
 export const metadata: Metadata = { title: { default: 'Admin', template: '%s | Admin — REwebPortal' } }
 
 const NAV = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/projects', label: 'Projects', icon: Building },
+  { href: '/admin/builders', label: 'Builders', icon: Users },
   { href: '/admin/rera-sync', label: 'RERA Sync', icon: RefreshCw },
   { href: '/admin/grievances', label: 'Grievances', icon: Flag },
   { href: '/admin/moderation', label: 'Moderation', icon: Eye },

@@ -13,7 +13,7 @@ export default function MyGrievancesPage() {
       <div className="mb-6 flex items-center justify-between">
         <h1 className="font-heading text-2xl font-bold text-neutral-900">My Grievances</h1>
         <Button asChild>
-          <Link href="/projects">
+          <Link href="/grievances/new">
             <Plus className="h-4 w-4" />
             File New Grievance
           </Link>
