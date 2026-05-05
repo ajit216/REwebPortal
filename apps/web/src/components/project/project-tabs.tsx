@@ -43,8 +43,18 @@ export function ProjectTabs({
       </div>
 
       <TabsContent value="overview">
-        {/* Placeholder — overview content rendered server-side in parent */}
-        <p className="text-sm text-neutral-500">See project details above.</p>
+        <div className="rounded-xl border border-neutral-200 bg-white p-6 text-sm text-neutral-600 leading-relaxed">
+          <p>
+            Use the tabs above to explore <strong>RERA &amp; Compliance</strong> details,
+            the <strong>Community Forum</strong> where verified buyers share updates,
+            aggregated <strong>Grievances</strong> filed against this project, and the
+            construction <strong>Timeline</strong> with planned vs. actual milestone dates.
+          </p>
+          <p className="mt-3">
+            Critical information — transparency score, project status, red flags, and key RERA
+            details — is shown in the project header above for quick reference.
+          </p>
+        </div>
       </TabsContent>
 
       <TabsContent value="rera">

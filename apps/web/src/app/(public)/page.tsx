@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Shield, Search, FileText, Users, ArrowRight, TrendingDown, AlertTriangle, CheckCircle, Building } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -5,6 +6,12 @@ import { AlertBanner } from '@/components/shared/alert-banner'
 import { ProjectCard } from '@/components/project/project-card'
 import { BuilderCard } from '@/components/builder/builder-card'
 import { PROJECTS, BUILDERS, ANALYTICS_STATS, LEGAL_RESOURCES, RED_FLAGS } from '@/data/mock'
+
+export const metadata: Metadata = {
+  title: 'Mumbai & Thane Homebuyer Protection Platform',
+  description:
+    'Know the truth about your Mumbai & Thane builder. RERA compliance, delivery track records, and buyer experiences — in one place. Protecting homebuyers through transparency.',
+}
 
 export default function LandingPage() {
   const featuredDelayedProjects = PROJECTS.filter((p) =>
@@ -44,20 +51,21 @@ export default function LandingPage() {
             </p>
 
             {/* Search Bar */}
-            <div className="mt-8 flex max-w-xl gap-2">
+            <form method="GET" action="/projects" className="mt-8 flex max-w-xl gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" aria-hidden="true" />
                 <input
                   type="search"
+                  name="q"
                   placeholder="Search project, builder, or RERA number…"
                   className="w-full rounded-xl border-0 bg-white pl-10 pr-4 py-3.5 text-neutral-900 placeholder-neutral-400 shadow-lg focus:outline-none focus:ring-2 focus:ring-white/50 text-sm"
                   aria-label="Search projects or builders"
                 />
               </div>
-              <Button size="lg" variant="outline" className="bg-white text-primary-700 hover:bg-primary-50 border-0 shadow-lg" asChild>
-                <Link href="/projects">Search</Link>
+              <Button size="lg" variant="outline" className="bg-white text-primary-700 hover:bg-primary-50 border-0 shadow-lg" type="submit">
+                Search
               </Button>
-            </div>
+            </form>
 
             {/* Trust Signals */}
             <div className="mt-8 flex flex-wrap gap-6 text-sm text-primary-200">
