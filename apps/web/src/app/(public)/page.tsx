@@ -11,16 +11,21 @@ export default function LandingPage() {
     ['DELAYED', 'STALLED'].includes(p.status)
   ).slice(0, 3)
 
+  // Thane city → Lodha Group only
+  const thaneLodhProjects = PROJECTS.filter(
+    (p) => p.city === 'Thane' && p.builderId === 'b1'
+  ).slice(0, 3)
+
   const featuredBuilders = BUILDERS.slice(0, 6)
   const featuredLegal = LEGAL_RESOURCES.slice(0, 3)
 
   return (
     <>
       <AlertBanner
-        type="warning"
-        message="14 projects in Thane have RERA registrations expiring in the next 60 days."
-        linkLabel="View them"
-        linkHref="/projects?filter=rera-expiring"
+        type="info"
+        message="Thane city residential projects: exclusively featuring Lodha Group developments."
+        linkLabel="Browse Thane projects"
+        linkHref="/projects?city=Thane"
       />
 
       {/* ── HERO ──────────────────────────────────────────────────── */}
@@ -78,8 +83,38 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FEATURED DELAYED PROJECTS ─────────────────────────────── */}
+      {/* ── THANE — LODHA PROJECTS ────────────────────────────────── */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-700">
+              <Building className="h-3.5 w-3.5" aria-hidden="true" />
+              Thane City · Lodha Group
+            </div>
+            <h2 className="font-heading text-2xl font-bold text-neutral-900">
+              Thane Residential Projects
+            </h2>
+            <p className="text-neutral-600 mt-1 text-sm">
+              Exclusive Lodha Group developments across Thane — track RERA status, delivery, and buyer sentiment
+            </p>
+          </div>
+          <Button variant="outline" asChild>
+            <Link href="/projects?city=Thane">View all Thane →</Link>
+          </Button>
+        </div>
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {thaneLodhProjects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              redFlags={RED_FLAGS[project.id] ?? []}
+            />
+          ))}
+        </div>
+      </section>
+
+      {/* ── FEATURED DELAYED PROJECTS ─────────────────────────────── */}
+      <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="font-heading text-2xl font-bold text-neutral-900">
