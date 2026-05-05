@@ -1,0 +1,56 @@
+version: '3.8'
+
+# Local development services — mirrors production infrastructure
+# Usage: docker compose up -d
+# Then run: pnpm dev (starts both Next.js and NestJS)
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: rewebportal_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rewebportal_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: rewebportal_redis
+    restart: unless-stopped
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: Prisma Studio (database GUI)
+  # Access at http://localhost:5555 after running: pnpm prisma studio
+  # Not started by default — run manually when needed.
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# ─── Quick reference ───────────────────────────────────────────────────────────
+# Start services:       docker compose up -d
+# Stop services:        docker compose down
+# Destroy volumes:      docker compose down -v   ⚠️ deletes all local data
+# View logs:            docker compose logs -f postgres
+# Reset DB:             docker compose down -v && docker compose up -d
