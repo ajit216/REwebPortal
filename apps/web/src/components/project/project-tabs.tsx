@@ -43,8 +43,10 @@ export function ProjectTabs({
       </div>
 
       <TabsContent value="overview">
-        {/* Placeholder — overview content rendered server-side in parent */}
-        <p className="text-sm text-neutral-500">See project details above.</p>
+        <div className="rounded-xl border border-neutral-200 bg-neutral-50 p-5 text-sm text-neutral-600">
+          Project details, unit types, location, and quick actions are displayed in the section above.
+          Use the other tabs to explore RERA compliance, community discussions, grievances, and construction timeline.
+        </div>
       </TabsContent>
 
       <TabsContent value="rera">
@@ -79,7 +81,7 @@ export function ProjectTabs({
                 Grievance Summary
               </h2>
               <Button asChild>
-                <Link href="/login?next=/grievances/new">
+                <Link href="/grievances/new">
                   <Flag className="h-4 w-4" />
                   File a Grievance
                 </Link>

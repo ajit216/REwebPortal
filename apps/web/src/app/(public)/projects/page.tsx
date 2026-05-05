@@ -1,11 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SlidersHorizontal } from 'lucide-react'
+import { Building2 } from 'lucide-react'
 import { ProjectCard } from '@/components/project/project-card'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PROJECTS, RED_FLAGS } from '@/data/mock'
-import { Badge } from '@/components/ui/badge'
 
 export const metadata: Metadata = {
   title: 'Project Directory',
@@ -21,6 +19,10 @@ export default function ProjectsPage({
 
   if (searchParams.city) {
     filtered = filtered.filter((p) => p.city.toLowerCase() === searchParams.city!.toLowerCase())
+    // Thane city exclusively features Lodha Group residential projects
+    if (searchParams.city.toLowerCase() === 'thane') {
+      filtered = filtered.filter((p) => p.builderId === 'b1')
+    }
   }
   if (searchParams.status) {
     const statuses = searchParams.status.split(',')
@@ -42,15 +44,29 @@ export default function ProjectsPage({
     return acc
   }, {} as Record<string, number>)
 
+  const isThane = searchParams.city?.toLowerCase() === 'thane'
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-heading text-3xl font-bold text-neutral-900">Project Directory</h1>
         <p className="text-neutral-600 mt-1">
-          {filtered.length} residential projects in Mumbai & Thane
+          {filtered.length} residential project{filtered.length !== 1 ? 's' : ''}
+          {isThane ? ' in Thane — Lodha Group' : ' in Mumbai & Thane'}
         </p>
       </div>
+
+      {/* Thane → Lodha-only notice */}
+      {isThane && (
+        <div className="mb-6 flex items-start gap-3 rounded-xl border border-primary-200 bg-primary-50 px-4 py-3">
+          <Building2 className="mt-0.5 h-5 w-5 shrink-0 text-primary-600" aria-hidden="true" />
+          <p className="text-sm text-primary-800">
+            <strong>Thane Residential Projects — Lodha Group</strong>
+            &nbsp;· Showing all Lodha Group projects in Thane city. Lodha is the exclusive developer featured for this region.
+          </p>
+        </div>
+      )}
 
       {/* Filter bar */}
       <div className="flex flex-wrap gap-3 mb-6">

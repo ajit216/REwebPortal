@@ -170,19 +170,19 @@ export default function ProjectDetailPage({ params }: PageProps) {
               </Link>
             </Button>
             <Button variant="outline" className="w-full" asChild>
-              <Link href="/login?next=/grievances/new">
+              <Link href={`/grievances/new?project=${project.slug}`}>
                 <Flag className="h-4 w-4" />
                 File a Grievance
               </Link>
             </Button>
             <Button variant="outline" className="w-full" asChild>
-              <Link href="/login?next=/verify">
+              <Link href="/verify">
                 <Users className="h-4 w-4" />
                 Join Community
               </Link>
             </Button>
             <Button variant="outline" className="w-full" asChild>
-              <Link href="/login?next=/verify">
+              <Link href="/verify">
                 <Building className="h-4 w-4" />
                 Verify Ownership
               </Link>

@@ -34,7 +34,7 @@ export function Navbar() {
             <Link href="/legal" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">
               Legal
             </Link>
-            <Link href="/tools/delay-calculator" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">
+            <Link href="/tools" className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors">
               Tools
             </Link>
           </nav>
@@ -69,7 +69,7 @@ export function Navbar() {
               { href: '/builders', label: 'Builders' },
               { href: '/analytics', label: 'Analytics' },
               { href: '/legal', label: 'Legal' },
-              { href: '/tools/delay-calculator', label: 'Tools' },
+              { href: '/tools', label: 'Tools' },
             ].map((item) => (
               <Link
                 key={item.href}
